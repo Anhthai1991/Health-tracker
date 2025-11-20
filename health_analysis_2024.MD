@@ -9,7 +9,7 @@
 
 ---
 
-## 1. EXECUTIVE SUMMARY (TL;DR)
+## 1. EXECUTIVE SUMMARY
 
 * **Tổng quan:** Thể trạng tốt, chức năng sinh sản **xuất sắc**. Tuy nhiên, hệ thống chuyển hóa đang gặp vấn đề nghiêm trọng với việc đào thải Acid Uric.
 * **Cảnh báo đỏ (Critical):** Acid Uric máu tăng cao (Nguy cơ Gout/Sỏi thận) và Dương tính vi khuẩn HP dạ dày.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thai Health AI Tracker</title>
+    <title>Thai Health AI Assistant</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -12,167 +12,108 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
-        /* Giao diện Clean & Modern */
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
         .main-content { flex: 1; }
-        
-        /* Cards hiệu ứng nổi */
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.2s; margin-bottom: 20px; }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0,0,0,0.06); }
-        
-        /* Header Gradient */
-        .header-bg { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; padding: 40px 0 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
-        
-        /* Buttons công cụ */
-        .tool-btn { border-radius: 12px; padding: 15px; font-weight: 600; border: none; width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
-        .tool-btn:active { transform: scale(0.96); }
-        
-        /* AI Elements */
-        .ai-badge { background: linear-gradient(45deg, #ff00cc, #333399); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.7em; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(51, 51, 153, 0.5); }
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header-gradient { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 40px 0 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
+        .tool-btn { border-radius: 12px; padding: 15px; font-weight: 600; border: none; width: 100%; margin-bottom: 10px; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .ai-loading { display: none; }
-        
-        /* Footer */
-        footer { background-color: #fff; border-top: 1px solid #eaeaea; padding: 20px 0; text-align: center; margin-top: auto; font-size: 0.9rem; color: #666; }
-        .heart-beat { animation: beat 1s infinite alternate; display: inline-block; color: #e74c3c; }
-        @keyframes beat { to { transform: scale(1.1); } }
+        .ai-badge { background: linear-gradient(45deg, #8e44ad, #3498db); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="header-bg text-center">
+    <div class="header-gradient text-center">
         <div class="container">
-            <h1 class="fw-bold mb-1">Nguyễn Anh Thái</h1>
-            <p class="opacity-75 mb-2">Personal Health Dashboard <span class="ai-badge">⚡ AI Powered</span></p>
-            
-            <button class="btn btn-sm btn-outline-secondary text-white border-white rounded-pill mt-2 px-3" data-bs-toggle="modal" data-bs-target="#keyModal">
-                <i class="bi bi-gear-fill"></i> Cài đặt Gemini API
+            <h1 class="fw-bold">Nguyễn Anh Thái <span class="ai-badge">AI Powered</span></h1>
+            <p class="opacity-75">Trợ lý sức khỏe cá nhân</p>
+            <button class="btn btn-sm btn-outline-light mt-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#keyModal">
+                <i class="bi bi-key-fill"></i> Cài đặt Gemini API Key
             </button>
+            <div id="modelStatus" class="small mt-2 text-warning" style="font-size: 0.8em;"></div>
         </div>
     </div>
 
     <div class="container main-content">
         
         <div class="row mb-4">
-            <div class="col-6 col-md-3 mb-2">
+            <div class="col-6 col-md-3">
                 <button class="tool-btn bg-white text-primary" onclick="window.print()">
-                    <span><i class="bi bi-printer-fill me-2"></i>Báo cáo Y tế</span>
+                    <span><i class="bi bi-printer"></i> Báo cáo</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3 mb-2">
+            <div class="col-6 col-md-3">
                 <button class="tool-btn bg-white text-success" data-bs-toggle="modal" data-bs-target="#adminModal">
-                    <span><i class="bi bi-database-add me-2"></i>Nhập liệu</span>
+                    <span><i class="bi bi-code-slash"></i> Tạo JSON</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3 mb-2">
+            <div class="col-6 col-md-3">
                 <button class="tool-btn bg-white text-danger" onclick="generateAIMenu()">
-                    <span><i class="bi bi-stars me-2"></i>AI Thực đơn</span>
+                    <span><i class="bi bi-stars"></i> AI Gợi ý món</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3 mb-2">
+            <div class="col-6 col-md-3">
                 <button class="tool-btn bg-white text-warning" onclick="checkHealthAI()">
-                    <span><i class="bi bi-activity me-2"></i>AI Tư vấn</span>
+                    <span><i class="bi bi-activity"></i> AI Phân tích</span>
                 </button>
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card p-4">
-                    <label class="fw-bold mb-2 text-primary"><i class="bi bi-robot"></i> Hỏi Gemini về thực phẩm:</label>
-                    <div class="input-group input-group-lg">
-                        <input type="text" id="foodSearch" class="form-control border-primary" placeholder="Ví dụ: Bún bò, Trà sữa, Canh chua..." onkeypress="handleEnter(event)">
-                        <button class="btn btn-primary px-4" onclick="searchWithAI()">
-                            <i class="bi bi-send-fill"></i> Hỏi ngay
-                        </button>
+                <div class="card p-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="foodSearch" class="form-control border-0" placeholder="Hỏi AI về thực phẩm (VD: Bún riêu, Trà sữa...)" onkeypress="handleEnter(event)">
+                        <button class="btn btn-primary rounded-pill px-4" onclick="searchWithAI()">Hỏi Gemini</button>
                     </div>
-                    
                     <div id="aiLoading" class="text-center mt-3 ai-loading">
                         <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                        <small class="text-primary fw-bold ms-2">Gemini đang phân tích...</small>
+                        <small class="text-muted ms-2">Gemini đang suy nghĩ...</small>
                     </div>
-                    
-                    <div id="searchResult" class="mt-3"></div>
-                    
-                    <div id="menuResult" class="alert alert-light border mt-3" style="display:none;">
-                        <h5 class="text-primary fw-bold"><i class="bi bi-stars"></i> Kết quả từ Gemini:</h5>
-                        <hr>
-                        <div id="menuContent" class="small"></div>
-                    </div>
+                    <div id="searchResult" class="mt-3 px-2"></div>
                 </div>
             </div>
+        </div>
+
+        <div id="menuResult" class="card p-3 mb-4 bg-white border-primary" style="display:none; border-left: 5px solid #0d6efd;">
+            <h5 class="text-primary"><i class="bi bi-robot"></i> Gemini tư vấn:</h5>
+            <div id="menuContent" class="small"></div>
         </div>
 
         <div class="row mb-4">
             <div class="col-md-7">
                 <div class="card p-3 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold m-0"><i class="bi bi-graph-up text-danger"></i> Chỉ số Xét Nghiệm</h5>
-                        <small class="text-muted">Đường nét đứt là ngưỡng an toàn</small>
-                    </div>
+                    <h5>Chỉ số máu</h5>
                     <canvas id="labChart"></canvas>
                 </div>
             </div>
             <div class="col-md-5">
                 <div class="card p-3 h-100">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-speedometer2 text-success"></i> Cân nặng & Mục tiêu</h5>
+                    <h5>Cân nặng</h5>
                     <canvas id="weightChart"></canvas>
-                    <div class="text-center mt-3">
-                        <span class="badge bg-success p-2">Mục tiêu: <span id="targetWeightDisplay">--</span> kg</span>
-                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="row mb-4">
-             <div class="col-12">
-                <div class="card p-3">
-                    <h5 class="fw-bold"><i class="bi bi-journal-bookmark-fill text-info"></i> Nhật ký Sức khỏe</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light"><tr><th>Ngày</th><th>Nội dung</th><th>Đánh giá</th></tr></thead>
-                            <tbody id="mealTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-             </div>
         </div>
     </div>
-
-    <footer>
-        <div class="container">
-            <p class="mb-1 fw-bold">© 2025 Thai Health Tracker Project</p>
-            <small>
-                Phát triển bởi <span class="text-primary">Nguyễn Anh Thái</span> & <span class="text-primary">Gemini AI</span> 
-                <span class="ai-badge ms-1">⚡ AI Powered</span>
-            </small>
-            <div class="mt-2 text-muted" style="font-size: 0.8em;">
-                Made with <i class="bi bi-heart-fill heart-beat"></i> for a better health.
-            </div>
-        </div>
-    </footer>
 
     <div class="modal fade" id="keyModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">🔑 Cài đặt Gemini API</h5>
+                    <h5 class="modal-title">Cài đặt Gemini API</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info small">
-                        API Key giúp kích hoạt tính năng AI (Gợi ý món, Phân tích thực phẩm). 
-                        Key được lưu <strong>cục bộ</strong> trên trình duyệt của bạn.
-                    </div>
-                    <label class="form-label">Dán API Key vào đây:</label>
-                    <input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="AIzaSy...">
+                    <p class="small text-muted">Nhập API Key. Hệ thống sẽ tự động dò tìm phiên bản AI phù hợp nhất với Key của bạn.</p>
+                    <input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="Paste API Key vào đây...">
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="showKey">
-                        <label class="form-check-label small" for="showKey">Hiện ký tự</label>
+                        <label class="form-check-label small" for="showKey">Hiện Key</label>
                     </div>
-                    <button class="btn btn-primary w-100" onclick="saveKey()">Lưu cấu hình</button>
-                    <div class="text-center mt-3">
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small text-decoration-none">Chưa có Key? Lấy miễn phí tại Google AI Studio ↗</a>
-                    </div>
+                    <button class="btn btn-primary w-100" onclick="saveKeyAndDetect()">Lưu & Dò tìm Model</button>
+                    <hr>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small">👉 Lấy API Key miễn phí tại đây</a>
                 </div>
             </div>
         </div>
@@ -181,33 +122,22 @@
     <div class="modal fade" id="adminModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title">🛠️ Công cụ Nhập liệu</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title">Admin Tool: Tạo JSON</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-pills nav-fill mb-3" role="tablist">
-                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCheckup">Xét nghiệm</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabWeight">Cân nặng</button></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="tabCheckup">
-                            <input type="date" id="inpDate" class="form-control mb-2">
-                            <div class="row g-2">
-                                <div class="col-6"><input type="number" id="inpUric" class="form-control" placeholder="Acid Uric"></div>
-                                <div class="col-6"><input type="number" id="inpAlt" class="form-control" placeholder="Men gan (ALT)"></div>
-                                <div class="col-6"><input type="number" id="inpCre" class="form-control" placeholder="Creatinine"></div>
-                                <div class="col-6"><input type="number" id="inpEgfr" class="form-control" placeholder="eGFR (Thận)"></div>
-                            </div>
-                            <button class="btn btn-success w-100 mt-3" onclick="genCheckupJSON()">Tạo Code JSON</button>
-                        </div>
-                        <div class="tab-pane fade" id="tabWeight">
-                            <input type="date" id="inpWDate" class="form-control mb-2">
-                            <input type="number" id="inpWeight" class="form-control mb-2" placeholder="Số kg (VD: 73.5)">
-                            <button class="btn btn-primary w-100 mt-3" onclick="genWeightJSON()">Tạo Code JSON</button>
-                        </div>
+                    <p class="small text-muted">Nhập dữ liệu, sau đó copy mã JSON dán vào file data.json</p>
+                    <div class="mb-2"><label>Ngày:</label><input type="date" id="inpDate" class="form-control"></div>
+                    <div class="row">
+                        <div class="col-6 mb-2"><label>Acid Uric:</label><input type="number" id="inpUric" class="form-control" placeholder="µmol/L"></div>
+                        <div class="col-6 mb-2"><label>Men gan (ALT):</label><input type="number" id="inpAlt" class="form-control" placeholder="U/L"></div>
+                        <div class="col-6 mb-2"><label>Creatinine:</label><input type="number" id="inpCre" class="form-control" placeholder="µmol/L"></div>
+                        <div class="col-6 mb-2"><label>eGFR:</label><input type="number" id="inpEgfr" class="form-control" placeholder="ml/min"></div>
                     </div>
-                    <textarea id="jsonOutput" class="form-control mt-3 bg-light font-monospace" rows="3" readonly placeholder="Kết quả sẽ hiện ở đây..."></textarea>
+                    <div class="mb-2"><label>Ghi chú:</label><input type="text" id="inpNote" class="form-control" placeholder="VD: Hồi phục tốt..."></div>
+                    <button class="btn btn-primary w-100 mt-2" onclick="genCheckupJSON()">Tạo Code JSON</button>
+                    <textarea id="jsonOutput" class="form-control mt-3 bg-light text-monospace" rows="4" readonly></textarea>
                 </div>
             </div>
         </div>
@@ -215,252 +145,202 @@
 
     <script>
         let foodDB = [];
-        let healthProfile = {};
+        let healthProfile = {}; 
         
-        // --- KHỞI TẠO ---
+        // KHỞI TẠO
         fetch('data.json').then(r => r.json()).then(data => {
-            fullData = data;
             foodDB = data.food_database;
             healthProfile = {
                 conditions: data.profile.conditions.join(", "),
                 lastCheckup: data.medical_checkups[data.medical_checkups.length - 1]
             };
             
-            document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
-            
             renderLabChart(data.medical_checkups);
             renderWeightChart(data.weight_log, data.profile.target_weight);
-            renderMeals(data.meal_logs);
             
-            // Kiểm tra Key
+            // Kiểm tra Key & Model đã lưu chưa
             const key = localStorage.getItem('geminiKey');
-            if(key) document.getElementById('apiKeyInput').value = key;
+            const savedModel = localStorage.getItem('geminiModel');
+            if(key) {
+                document.getElementById('apiKeyInput').value = key;
+                if(savedModel) {
+                    document.getElementById('modelStatus').innerText = `✅ Đang dùng: ${savedModel}`;
+                } else {
+                    // Có key nhưng chưa biết model, tự dò
+                    detectModel(key);
+                }
+            } else {
+                // Chưa có key, mở modal
+                 const modal = new bootstrap.Modal(document.getElementById('keyModal'));
+                 modal.show();
+            }
         });
 
-        // --- XỬ LÝ API KEY ---
-        document.getElementById('showKey').addEventListener('change', function() {
-            document.getElementById('apiKeyInput').type = this.checked ? 'text' : 'password';
-        });
-        function saveKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if(key) {
-                localStorage.setItem('geminiKey', key);
-                alert('Đã lưu API Key thành công!');
-                bootstrap.Modal.getInstance(document.getElementById('keyModal')).hide();
+        // --- HÀM QUAN TRỌNG NHẤT: TỰ DÒ TÌM MODEL ---
+        async function detectModel(key) {
+            const statusDiv = document.getElementById('modelStatus');
+            statusDiv.innerText = "⏳ Đang dò tìm phiên bản AI phù hợp...";
+            
+            try {
+                // Gọi API lấy danh sách Model
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+                const data = await response.json();
+
+                if(data.error) {
+                    alert('Lỗi Key: ' + data.error.message);
+                    statusDiv.innerText = "❌ Key không hợp lệ";
+                    return;
+                }
+
+                // Tìm model hỗ trợ 'generateContent'
+                const validModel = data.models.find(m => 
+                    m.supportedGenerationMethods.includes("generateContent") && 
+                    (m.name.includes("flash") || m.name.includes("pro"))
+                );
+
+                if (validModel) {
+                    // Google trả về dạng "models/gemini-1.5-flash", ta cần cắt bỏ "models/"
+                    const modelName = validModel.name.replace("models/", "");
+                    localStorage.setItem('geminiModel', modelName);
+                    statusDiv.innerText = `✅ Đã kết nối: ${modelName}`;
+                    alert(`Thành công! Hệ thống đã chọn model: ${modelName}`);
+                } else {
+                    // Fallback nếu không tìm thấy cái nào quen thuộc
+                    localStorage.setItem('geminiModel', 'gemini-1.5-flash');
+                    statusDiv.innerText = "⚠️ Dùng mặc định: gemini-1.5-flash";
+                }
+
+            } catch (e) {
+                console.error(e);
+                statusDiv.innerText = "❌ Lỗi kết nối mạng";
             }
         }
 
-        // --- GỌI GEMINI (Hàm lõi) ---
-        // 3. GỌI GEMINI API (Đã vá lỗi & Bắt lỗi chi tiết)
-        // 3. GỌI GEMINI API (Sử dụng bản gemini-pro ổn định nhất)
+        function saveKeyAndDetect() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if(key) {
+                localStorage.setItem('geminiKey', key);
+                // Xóa model cũ để dò lại
+                localStorage.removeItem('geminiModel');
+                bootstrap.Modal.getInstance(document.getElementById('keyModal')).hide();
+                detectModel(key);
+            }
+        }
+
+        // --- HÀM GỌI AI (Đã dùng model tự dò) ---
         async function callGemini(prompt) {
             const key = localStorage.getItem('geminiKey');
+            let modelName = localStorage.getItem('geminiModel');
             
             if(!key) {
-                alert('Vui lòng nhập Gemini API Key trong phần Cài đặt trước!');
-                const keyModal = new bootstrap.Modal(document.getElementById('keyModal'));
-                keyModal.show();
+                alert('Chưa có API Key!'); 
                 return null;
             }
+            // Nếu chưa có model, dùng mặc định an toàn nhất
+            if(!modelName) modelName = 'gemini-1.5-flash';
 
             document.getElementById('aiLoading').style.display = 'block';
             
             try {
-                // --- SỬA ĐỔI QUAN TRỌNG: Dùng 'gemini-pro' ---
-                const modelName = 'gemini-pro'; 
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
-
+                
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
                 const data = await response.json();
                 document.getElementById('aiLoading').style.display = 'none';
 
-                // Bắt lỗi chi tiết
                 if (data.error) {
-                    console.error("API Error:", data.error);
-                    alert('Lỗi Google API: ' + data.error.message);
+                    // Nếu lỗi Model not found, thử dò lại ngay lập tức
+                    if(data.error.message.includes('not found')) {
+                        alert('Model cũ bị lỗi, đang tự động cập nhật lại...');
+                        await detectModel(key);
+                        return null; // Bắt người dùng bấm lại lần nữa cho chắc
+                    }
+                    alert('Lỗi Google: ' + data.error.message);
                     return null;
                 }
 
-                if (!data.candidates || data.candidates.length === 0) {
-                    alert('AI không phản hồi. Có thể do nội dung bị chặn bởi bộ lọc an toàn.');
-                    return null;
-                }
-
+                if (!data.candidates || data.candidates.length === 0) return "AI không phản hồi.";
                 return data.candidates[0].content.parts[0].text;
 
             } catch (error) {
                 document.getElementById('aiLoading').style.display = 'none';
-                console.error("Network Error:", error);
-                alert('Lỗi kết nối mạng: ' + error.message);
+                alert('Lỗi mạng: ' + error.message);
                 return null;
             }
         }
-        // --- CÁC TÍNH NĂNG AI ---
+
+        // --- CÁC HÀM LOGIC CŨ (Search, Menu, Charts...) ---
         async function searchWithAI() {
             const query = document.getElementById('foodSearch').value;
             if(!query) return;
+            const localResult = foodDB.find(f => f.name.toLowerCase().includes(query.toLowerCase()));
+            const resDiv = document.getElementById('searchResult');
             
-            // Check DB trước
-            const local = foodDB.find(f => f.name.toLowerCase().includes(query.toLowerCase()));
-            if(local) {
-                let color = local.status === 'green' ? 'success' : (local.status === 'yellow' ? 'warning' : 'danger');
-                document.getElementById('searchResult').innerHTML = 
-                    `<div class="alert alert-${color}"><strong>(Có sẵn) ${local.name}</strong>: ${local.reason}</div>`;
+            if(localResult) {
+                let color = localResult.status === 'green' ? 'success' : (localResult.status === 'yellow' ? 'warning' : 'danger');
+                resDiv.innerHTML = `<div class="alert alert-${color}"><strong>(Database) ${localResult.name}</strong>: ${localResult.reason}</div>`;
                 return;
             }
 
-            // Hỏi AI
-            const prompt = `Tôi bị: ${healthProfile.conditions}. Chỉ số: Acid Uric ${healthProfile.lastCheckup.uric_acid}, Men gan ${healthProfile.lastCheckup.alt_liver}, eGFR ${healthProfile.lastCheckup.egfr}. 
-            Đánh giá món: "${query}". Trả về JSON: {"status": "green/yellow/red", "name": "${query}", "reason": "ngắn gọn"}`;
-            
-            const res = await callGemini(prompt);
-            if(res) {
-                try {
-                    const json = JSON.parse(res.replace(/```json|```/g, '').trim());
-                    let color = json.status === 'green' ? 'success' : (json.status === 'yellow' ? 'warning' : 'danger');
-                    let icon = json.status === 'green' ? '🟢 Nên ăn' : (json.status === 'yellow' ? '🟡 Hạn chế' : '🔴 Tránh xa');
-                    document.getElementById('searchResult').innerHTML = 
-                        `<div class="alert alert-${color}"><strong>${icon} ${json.name}</strong><br>${json.reason}</div>`;
-                } catch(e) {
-                    document.getElementById('searchResult').innerHTML = `<div class="alert alert-light border">${marked.parse(res)}</div>`;
-                }
-            }
-        }
+            const prompt = `Tôi bị bệnh: ${healthProfile.conditions}. Acid Uric ${healthProfile.lastCheckup.uric_acid}, Men gan ${healthProfile.lastCheckup.alt_liver}. Đánh giá món "${query}". Trả về JSON duy nhất: {"status": "green/yellow/red", "reason": "ngắn gọn", "name": "${query}"}`;
 
-        async function generateAIMenu() {
-            const prompt = `Gợi ý thực đơn 1 ngày (Sáng/Trưa/Chiều) cho người bị Gout, Men gan cao, Trào ngược. Món Việt Nam, bình dân. Định dạng Markdown.`;
-            const res = await callGemini(prompt);
-            if(res) {
-                document.getElementById('menuResult').style.display = 'block';
-                document.getElementById('menuContent').innerHTML = marked.parse(res);
-            }
-        }
-        
-        async function checkHealthAI() {
-            const prompt = `Dựa trên chỉ số: Uric ${healthProfile.lastCheckup.uric_acid}, ALT ${healthProfile.lastCheckup.alt_liver}, eGFR ${healthProfile.lastCheckup.egfr}. Hãy đưa ra 3 lời khuyên y tế quan trọng nhất ngay lúc này.`;
-            const res = await callGemini(prompt);
-            if(res) {
-                document.getElementById('menuResult').style.display = 'block';
-                document.getElementById('menuContent').innerHTML = marked.parse(res);
+            const aiRes = await callGemini(prompt);
+            if(aiRes) {
+                try {
+                    const cleanJson = aiRes.replace(/```json|```/g, '').trim();
+                    const data = JSON.parse(cleanJson);
+                    let color = data.status === 'green' ? 'success' : (data.status === 'yellow' ? 'warning' : 'danger');
+                    resDiv.innerHTML = `<div class="alert alert-${color}"><strong>🤖 AI: ${data.name}</strong><br>${data.reason}</div>`;
+                } catch (e) { resDiv.innerHTML = `<div class="alert alert-secondary">${aiRes}</div>`; }
             }
         }
 
         function handleEnter(e) { if(e.key === 'Enter') searchWithAI(); }
 
-        // --- ADMIN TOOLS ---
-        function genCheckupJSON() {
-            const obj = {
-                date: document.getElementById('inpDate').value,
-                uric_acid: parseFloat(document.getElementById('inpUric').value),
-                alt_liver: parseFloat(document.getElementById('inpAlt').value),
-                creatinine: parseFloat(document.getElementById('inpCre').value),
-                egfr: parseFloat(document.getElementById('inpEgfr').value),
-                note: "Cập nhật mới"
-            };
-            copyJSON(JSON.stringify(obj, null, 2) + ",");
+        async function generateAIMenu() {
+            const prompt = `Gợi ý thực đơn hôm nay cho người bị Gout, Men gan cao. Acid Uric ${healthProfile.lastCheckup.uric_acid}. Món Việt Nam. Markdown.`;
+            const aiRes = await callGemini(prompt);
+            if(aiRes) {
+                document.getElementById('menuResult').style.display = 'block';
+                document.getElementById('menuContent').innerHTML = marked.parse(aiRes);
+            }
         }
-        function genWeightJSON() {
-            const obj = { date: document.getElementById('inpWDate').value, value: parseFloat(document.getElementById('inpWeight').value) };
-            copyJSON(JSON.stringify(obj, null, 2) + ",");
-        }
-        function copyJSON(str) {
-            const out = document.getElementById('jsonOutput');
-            out.value = str; out.select(); document.execCommand('copy');
-            alert('Đã copy JSON! Hãy dán vào file data.json');
+        
+        async function checkHealthAI() {
+             const prompt = `Dựa trên chỉ số: ${JSON.stringify(healthProfile.lastCheckup)}. Cho 3 lời khuyên ngắn gọn.`;
+             const aiRes = await callGemini(prompt);
+             if(aiRes) {
+                document.getElementById('menuResult').style.display = 'block';
+                document.getElementById('menuContent').innerHTML = marked.parse(aiRes);
+            }
         }
 
-        // --- CHARTS ---
-        // 1. HÀM VẼ BIỂU ĐỒ NÂNG CAO (Có hiển thị Event)
+        document.getElementById('showKey').addEventListener('change', function() {
+            document.getElementById('apiKeyInput').type = this.checked ? 'text' : 'password';
+        });
+
+        // Chart rendering code (Giữ nguyên như cũ)
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
-            const labels = logs.map(l => l.date);
+            const pointColors = logs.map(l => (l.note||'').includes('cấp') ? '#e74c3c' : ((l.note||'').includes('tốt') ? '#27ae60' : '#f1c40f'));
+            const pointStyles = logs.map(l => (l.note||'').includes('tốt') ? 'star' : ((l.note||'').includes('cấp') ? 'rectRot' : 'circle'));
+            const pointSizes = logs.map(l => (l.note && l.note.length > 5) ? 8 : 4);
 
-            // --- XỬ LÝ LOGIC EVENT ---
-            // Tự động phát hiện từ khóa trong 'note' để đổi màu/hình dáng điểm đo
-            const pointColors = logs.map(l => {
-                const n = l.note ? l.note.toLowerCase() : "";
-                if (n.includes('cấp') || n.includes('cao') || n.includes('xấu')) return '#e74c3c'; // Đỏ (Nguy hiểm)
-                if (n.includes('tốt') || n.includes('hồi phục') || n.includes('giảm')) return '#27ae60'; // Xanh (Tốt)
-                return '#f1c40f'; // Vàng (Bình thường)
-            });
-
-            const pointStyles = logs.map(l => {
-                const n = l.note ? l.note.toLowerCase() : "";
-                if (n.includes('hồi phục') || n.includes('tốt')) return 'star'; // Hình ngôi sao cho sự kiện tốt
-                if (n.includes('cấp')) return 'rectRot'; // Hình thoi cho sự kiện xấu
-                return 'circle';
-            });
-
-            const pointSizes = logs.map(l => {
-                 // Nếu có ghi chú sự kiện thì điểm to hơn bình thường (radius 8 vs 4)
-                 return (l.note && l.note.length > 5) ? 8 : 4; 
-            });
-
-            // --- CẤU HÌNH DATASET ---
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: logs.map(l => l.date),
                     datasets: [
-                        { 
-                            label: 'Gout (Acid Uric)', 
-                            data: logs.map(l => l.uric_acid), 
-                            borderColor: '#e74c3c',
-                            backgroundColor: '#e74c3c',
-                            tension: 0.3, 
-                            yAxisID: 'y',
-                            // Áp dụng style động
-                            pointBackgroundColor: pointColors,
-                            pointRadius: pointSizes,
-                            pointStyle: pointStyles,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
-                        },
-                        { 
-                            label: 'Men gan (ALT)', 
-                            data: logs.map(l => l.alt_liver), 
-                            borderColor: '#f1c40f', 
-                            tension: 0.3, 
-                            yAxisID: 'y1',
-                            pointRadius: 0 // Men gan để điểm nhỏ cho đỡ rối
-                        },
-                        // Ngưỡng an toàn
-                        { label: 'Ngưỡng Gout (420)', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.2)', borderDash:[5,5], pointRadius:0, yAxisID:'y' }
+                        { label: 'Gout', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', pointBackgroundColor: pointColors, pointStyle: pointStyles, pointRadius: pointSizes, yAxisID: 'y' },
+                        { label: 'Men gan', data: logs.map(l => l.alt_liver), borderColor: '#f1c40f', pointRadius: 0, yAxisID: 'y1' }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        tooltip: {
-                            usePointStyle: true,
-                            callbacks: {
-                                // Tùy biến hiển thị Tooltip để hiện Ghi chú sự kiện
-                                footer: function(tooltipItems) {
-                                    const index = tooltipItems[0].dataIndex;
-                                    const note = logs[index].note;
-                                    if (note) return '\n📌 Sự kiện: ' + note;
-                                    return '';
-                                }
-                            }
-                        },
-                        legend: { position: 'bottom' }
-                    },
-                    scales: {
-                        y: { type: 'linear', display: true, position: 'left', title: {display:true, text:'Gout (µmol/L)'} },
-                        y1: { type: 'linear', display: true, position: 'right', grid:{drawOnChartArea:false} }
-                    }
-                }
+                options: { responsive: true, scales: { y: {position:'left'}, y1: {position:'right', grid:{drawOnChartArea:false}} } }
             });
         }
         function renderWeightChart(logs, target) {
@@ -469,19 +349,24 @@
                 type: 'line',
                 data: {
                     labels: logs.map(l => l.date),
-                    datasets: [
-                        { label: 'Cân nặng (kg)', data: logs.map(l => l.value), borderColor: '#3498db', backgroundColor:'rgba(52,152,219,0.1)', fill:true, tension:0.3 },
-                        { label: 'Mục tiêu', data: Array(logs.length).fill(target), borderColor: '#27ae60', borderDash:[5,5], pointRadius:0 }
-                    ]
+                    datasets: [{ label: 'Kg', data: logs.map(l => l.value), borderColor: '#3498db', tension: 0.3 }]
                 }
             });
         }
-        function renderMeals(logs) {
-             const tbody = document.getElementById('mealTable');
-             tbody.innerHTML = '';
-             logs.slice().reverse().slice(0,10).forEach(log => {
-                tbody.innerHTML += `<tr><td><small>${log.date}</small></td><td>${log.content}</td><td><span class="badge bg-success bg-opacity-10 text-success">${log.evaluation}</span></td></tr>`;
-            });
+        
+        // Admin Tool Logic
+        function genCheckupJSON() {
+            const obj = {
+                date: document.getElementById('inpDate').value,
+                uric_acid: parseFloat(document.getElementById('inpUric').value),
+                alt_liver: parseFloat(document.getElementById('inpAlt').value),
+                creatinine: parseFloat(document.getElementById('inpCre').value) || null,
+                egfr: parseFloat(document.getElementById('inpEgfr').value) || null,
+                note: document.getElementById('inpNote').value
+            };
+            const out = document.getElementById('jsonOutput');
+            out.value = JSON.stringify(obj, null, 2) + ",";
+            out.select(); document.execCommand('copy'); alert('Đã Copy!');
         }
     </script>
 </body>

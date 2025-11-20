@@ -1,15 +1,15 @@
 # Cấu trúc repo
 
-####### PERSONALHEALTH/
-########├── _config.yml           <-- (Mới) Cấu hình Jekyll
-########├── _layouts/             <-- (Mới) Chứa khung giao diện chung
-########│   └── default.html      <-- (Mới) File khung xương
-########├── assets/               <-- (Mới) Chứa ảnh, css, js (nên gom gọn vào đây)
-########├── data.json
-########├── health_analysis_2024.md
-########├── workout_plan.md
-########├── index.html
-########└── ... (các file cũ)
+###### PERSONALHEALTH/
+###### ├── _config.yml           <-- (Mới) Cấu hình Jekyll
+###### ├── _layouts/             <-- (Mới) Chứa khung giao diện chung
+###### │   └── default.html      <-- (Mới) File khung xương
+###### ├── assets/               <-- (Mới) Chứa ảnh, css, js (nên gom gọn vào đây)
+###### ├── data.json
+###### ├── health_analysis_2024.md
+###### ├── workout_plan.md
+###### ├── index.html
+###### └── ... (các file cũ)
 # Hướng dẫn sử dụng
 ### 1. Cài đặt PWA (Trên điện thoại):
 

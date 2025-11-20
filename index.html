@@ -125,6 +125,12 @@
                              <span class="text-muted">Bệnh lý nền:</span><br>
                              <span id="pConditions" class="badge bg-warning text-dark text-wrap text-start" style="line-height: 1.4;">--</span>
                         </div>
+                        <div class="col-12 mt-2">
+                            <button class="tool-btn text-white" style="background: linear-gradient(45deg, #667eea, #764ba2) !important;" onclick="toggleView('workout')">
+                                <span>🏋️ Hành Trình Tập Luyện (Gym/Sport)</span>
+                                <i class="bi bi-trophy-fill"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,7 +142,75 @@
             <div class="col-6 col-md-3"><button class="tool-btn text-danger" onclick="generateAIMenu()"><span>Thực Đơn AI</span><i class="bi bi-egg-fried"></i></button></div>
             <div class="col-6 col-md-3"><button class="tool-btn text-warning" onclick="checkHealthAI()"><span>Phân Tích</span><i class="bi bi-activity"></i></button></div>
         </div>
+        <div id="workoutSection" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="text-primary fw-bold"><i class="bi bi-activity"></i> Nhật Ký Vận Động</h5>
+        <button class="btn btn-sm btn-secondary" onclick="toggleView('dashboard')"><i class="bi bi-arrow-left"></i> Quay lại</button>
+    </div>
 
+    <div class="row mb-4">
+        <div class="col-4">
+            <div class="card p-2 text-center border-primary">
+                <small class="text-muted">Số buổi/Tuần</small>
+                <h3 class="fw-bold text-primary" id="woCount">0</h3>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card p-2 text-center border-success">
+                <small class="text-muted">Calo đốt</small>
+                <h3 class="fw-bold text-success" id="woBurn">0</h3>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card p-2 text-center border-warning">
+                <small class="text-muted">Cơ / Cardio</small>
+                <h6 class="fw-bold mt-2" id="woRatio">--</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-3 mb-4 border-primary">
+        <h6><i class="bi bi-plus-circle"></i> Ghi nhận bài tập hôm nay</h6>
+        <div class="row g-2">
+            <div class="col-6">
+                <select id="inpWType" class="form-select form-select-sm">
+                    <option value="walk">🏃 Đi bộ / Chạy</option>
+                    <option value="gym">🏋️ Gym / Tạ</option>
+                    <option value="swim">🏊 Bơi lội</option>
+                    <option value="badminton">🏸 Cầu lông</option>
+                    <option value="pilates">🧘 Pilates / Yoga</option>
+                    <option value="kegel">⚡ Kegel / Core</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <input type="number" id="inpWDuration" class="form-control form-control-sm" placeholder="Phút (VD: 30)">
+            </div>
+            <div class="col-12">
+                <textarea id="inpWNote" class="form-control form-control-sm" placeholder="Ghi chú: Tập chân, nhịp tim tb 130..."></textarea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary w-100 btn-sm" onclick="addWorkoutLog()">Lưu Bài Tập</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-3 mb-4 bg-light">
+        <h6 class="text-secondary"><i class="bi bi-robot"></i> Coach AI gợi ý hôm nay</h6>
+        <p class="small text-muted mb-2">Dựa trên thể trạng Gout & Mục tiêu sinh con:</p>
+        <div id="aiWorkoutTip" class="small fst-italic">
+            "Đang tải lời khuyên..."
+        </div>
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="askAIWorkout()">Xin bài tập khác</button>
+    </div>
+
+    <h6 class="text-muted">Lịch sử gần đây</h6>
+    <div class="table-responsive">
+        <table class="table table-hover small">
+            <thead><tr><th>Ngày</th><th>Môn</th><th>Phút</th><th>Calo</th></tr></thead>
+            <tbody id="workoutTable"></tbody>
+        </table>
+    </div>
+</div>
         <div class="row mb-4 search-section">
             <div class="col-md-12">
                 <div class="card p-3 border-primary border-1">
@@ -542,6 +616,93 @@
         function handleEnter(e) { if(e.key==='Enter') askAI(); }
         async function generateAIMenu() { const r=await callGemini(`Gợi ý thực đơn 1 ngày cho: ${healthProfile.conditions}. Calo: ${healthProfile.targetCal}. Markdown.`); if(r){document.getElementById('menuResult').style.display='block';document.getElementById('menuContent').innerHTML=marked.parse(r);} }
         async function checkHealthAI() { const r=await callGemini(`Phân tích chỉ số: ${JSON.stringify(healthProfile.lastCheckup)}. Markdown.`); if(r){document.getElementById('menuResult').style.display='block';document.getElementById('menuContent').innerHTML=marked.parse(r);} }
+        // --- WORKOUT LOGIC ---
+let workoutLogs = [];
+
+// 1. Hàm chuyển đổi giao diện
+function toggleView(view) {
+    const main = document.querySelector('.main-content > .row:not(#workoutSection)'); // Chọn các row cũ
+    const woSection = document.getElementById('workoutSection');
+    
+    // Ẩn hiện các phần tử Dashboard cũ
+    const rows = document.querySelectorAll('.main-content > .row');
+    
+    if (view === 'workout') {
+        rows.forEach(r => { if(r.id !== 'workoutSection') r.style.display = 'none'; });
+        woSection.style.display = 'block';
+        renderWorkouts();
+        if(workoutLogs.length === 0) askAIWorkout(); // Lần đầu vào thì hỏi AI luôn
+    } else {
+        rows.forEach(r => { if(r.id !== 'workoutSection') r.style.display = 'flex'; }); // Hoặc block tùy layout cũ
+        // Fix nhanh hiển thị lại dashboard
+        location.reload(); // Cách đơn giản nhất để reset lại view Dashboard chuẩn
+    }
+}
+
+// 2. Hàm tính Calo ước tính (Tương đối)
+function estimateBurn(type, mins, weight) {
+    // METs (Metabolic Equivalent of Task)
+    const mets = { 'walk': 3.5, 'gym': 5.0, 'swim': 6.0, 'badminton': 5.5, 'pilates': 3.0, 'kegel': 1.5 };
+    const met = mets[type] || 3.0;
+    // Công thức: Kcal = MET * Weight(kg) * (Time(min)/60)
+    return Math.round(met * weight * (mins / 60));
+}
+
+// 3. Hàm Lưu Bài Tập
+function addWorkoutLog() {
+    const type = document.getElementById('inpWType').value;
+    const dur = parseInt(document.getElementById('inpWDuration').value);
+    const note = document.getElementById('inpWNote').value;
+    const currentWeight = parseFloat(document.getElementById('pWeight').innerText) || 70;
+
+    if (!dur) return alert("Vui lòng nhập thời gian tập!");
+
+    const cal = estimateBurn(type, dur, currentWeight);
+    const log = {
+        date: new Date().toLocaleDateString('vi-VN'),
+        type: type,
+        duration: dur,
+        calories: cal,
+        note: note
+    };
+
+    // Lưu vào LocalStorage (Vì ta không sửa được file data.json trực tiếp)
+    let storedLogs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    storedLogs.push(log);
+    localStorage.setItem('workoutLogs', JSON.stringify(storedLogs));
+    
+    alert(`Đã lưu! Bạn đốt được khoảng ${cal} kcal.`);
+    renderWorkouts();
+}
+
+// 4. Hàm Hiển thị danh sách
+function renderWorkouts() {
+    let storedLogs = JSON.parse(localStorage.getItem('workoutLogs') || '[]');
+    workoutLogs = storedLogs; // Sync global var
+    
+    const tbody = document.getElementById('workoutTable');
+    tbody.innerHTML = storedLogs.slice().reverse().map(l => `
+        <tr>
+            <td>${l.date}</td>
+            <td><span class="badge bg-info text-dark">${l.type.toUpperCase()}</span><br><span class="text-muted" style="font-size:0.7em">${l.note}</span></td>
+            <td>${l.duration}p</td>
+            <td>🔥 ${l.calories}</td>
+        </tr>
+    `).join('');
+
+    // Cập nhật thống kê
+    document.getElementById('woCount').innerText = storedLogs.length;
+    const totalBurn = storedLogs.reduce((sum, l) => sum + l.calories, 0);
+    document.getElementById('woBurn').innerText = totalBurn;
+}
+
+// 5. Hàm AI Gợi ý bài tập (Dùng key cũ)
+async function askAIWorkout() {
+    document.getElementById('aiWorkoutTip').innerHTML = '<div class="spinner-border spinner-border-sm"></div> Đang suy nghĩ...';
+    const prompt = `Đóng vai PT Gym & Bác sĩ. Người dùng: Nam, muốn có con, bị Gout. Gợi ý 1 bài tập cụ thể cho ngày hôm nay (chọn 1 trong: Gym, Bơi, Pilates, Kegel). Ngắn gọn dưới 50 từ. Vui vẻ.`;
+    const res = await callGemini(prompt);
+    if(res) document.getElementById('aiWorkoutTip').innerText = res;
+}
     </script>
 </body>
 </html>

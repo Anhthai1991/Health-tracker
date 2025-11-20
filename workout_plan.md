@@ -67,4 +67,5 @@
 
 ## 💡 Mẹo nhỏ cho "Ông Bố Tương Lai"
 1.  **Ngủ trước 23h:** Tinh trùng và Cơ bắp đều được tái tạo tốt nhất lúc ngủ.
-2.  **Kẽm & Hàu:** Bổ sung thực phẩm giàu Kẽm (nhưng cẩn thận lượng đạm nếu đang đau Gout).ke
+2.  **Kẽm & Hàu:** Bổ sung thực phẩm giàu Kẽm (nhưng cẩn thận lượng đạm nếu đang đau Gout).
+3.  **Stress Management:** Stress gây tăng Cortisol -> Giảm Testos -> Tích mỡ bụng. Hãy thiền hoặc nghe nhạc.

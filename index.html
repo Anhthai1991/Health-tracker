@@ -3,211 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thai Health Super-App</title>
+    <title>Thai Health AI Tracker</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2980b9">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        /* Giao diện Clean & Modern */
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex: 1; }
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; }
-        .header-gradient { background: linear-gradient(135deg, #2980b9, #2c3e50); color: white; padding: 40px 0 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
-        .tool-btn { border-radius: 12px; padding: 15px; font-weight: 600; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: none; width: 100%; margin-bottom: 10px; text-align: left; display: flex; align-items: center; justify-content: space-between; }
-        .tool-btn i { font-size: 1.5rem; }
-        footer { background: #fff; padding: 20px 0; margin-top: auto; text-align: center; border-top: 1px solid #eee; }
         
-        /* Print Styles (Doctor View) */
-        @media print {
-            body { background: white; }
-            .no-print, .header-gradient, footer, .tool-btn, .search-section, .water-section { display: none !important; }
-            .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
-            .container { max-width: 100%; }
-        }
-        .print-header { display: none; }
+        /* Cards hiệu ứng nổi */
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: transform 0.2s; margin-bottom: 20px; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0,0,0,0.06); }
+        
+        /* Header Gradient */
+        .header-bg { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; padding: 40px 0 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
+        
+        /* Buttons công cụ */
+        .tool-btn { border-radius: 12px; padding: 15px; font-weight: 600; border: none; width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
+        .tool-btn:active { transform: scale(0.96); }
+        
+        /* AI Elements */
+        .ai-badge { background: linear-gradient(45deg, #ff00cc, #333399); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.7em; font-weight: bold; letter-spacing: 0.5px; box-shadow: 0 0 10px rgba(51, 51, 153, 0.5); }
+        .ai-loading { display: none; }
+        
+        /* Footer */
+        footer { background-color: #fff; border-top: 1px solid #eaeaea; padding: 20px 0; text-align: center; margin-top: auto; font-size: 0.9rem; color: #666; }
+        .heart-beat { animation: beat 1s infinite alternate; display: inline-block; color: #e74c3c; }
+        @keyframes beat { to { transform: scale(1.1); } }
     </style>
 </head>
 <body>
 
-    <div class="header-gradient text-center no-print">
+    <div class="header-bg text-center">
         <div class="container">
-            <h1 class="fw-bold">Nguyễn Anh Thái</h1>
-            <p class="mb-0 opacity-75">Health Dashboard & Analytics</p>
-            <div class="mt-3">
-                <span class="badge bg-light text-dark mx-1">Gout</span>
-                <span class="badge bg-light text-dark mx-1">GERD</span>
-                <span class="badge bg-light text-dark mx-1">Men Gan</span>
-                <span class="badge bg-light text-dark mx-1">Thận (eGFR)</span>
-            </div>
+            <h1 class="fw-bold mb-1">Nguyễn Anh Thái</h1>
+            <p class="opacity-75 mb-2">Personal Health Dashboard <span class="ai-badge">⚡ AI Powered</span></p>
+            
+            <button class="btn btn-sm btn-outline-secondary text-white border-white rounded-pill mt-2 px-3" data-bs-toggle="modal" data-bs-target="#keyModal">
+                <i class="bi bi-gear-fill"></i> Cài đặt Gemini API
+            </button>
         </div>
-    </div>
-
-    <div class="print-header">
-        <h2>BÁO CÁO SỨC KHỎE: NGUYỄN ANH THÁI</h2>
-        <p>Ngày xuất báo cáo: <script>document.write(new Date().toLocaleDateString('vi-VN'))</script></p>
-        <hr>
     </div>
 
     <div class="container main-content">
         
-        <div class="row mb-4 no-print">
-            <div class="col-6 col-md-3">
+        <div class="row mb-4">
+            <div class="col-6 col-md-3 mb-2">
                 <button class="tool-btn bg-white text-primary" onclick="window.print()">
-                    <span><i class="bi bi-printer-fill"></i> Doctor View</span>
+                    <span><i class="bi bi-printer-fill me-2"></i>Báo cáo Y tế</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-3 mb-2">
                 <button class="tool-btn bg-white text-success" data-bs-toggle="modal" data-bs-target="#adminModal">
-                    <span><i class="bi bi-code-slash"></i> Tạo JSON</span>
+                    <span><i class="bi bi-database-add me-2"></i>Nhập liệu</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3">
-                <button class="tool-btn bg-white text-danger" data-bs-toggle="modal" data-bs-target="#analyticsModal">
-                    <span><i class="bi bi-graph-up-arrow"></i> Phân tích sâu</span>
+            <div class="col-6 col-md-3 mb-2">
+                <button class="tool-btn bg-white text-danger" onclick="generateAIMenu()">
+                    <span><i class="bi bi-stars me-2"></i>AI Thực đơn</span>
                 </button>
             </div>
-            <div class="col-6 col-md-3">
-                <button class="tool-btn bg-white text-warning" onclick="generateMenu()">
-                    <span><i class="bi bi-dice-5-fill"></i> Hôm nay ăn gì?</span>
+            <div class="col-6 col-md-3 mb-2">
+                <button class="tool-btn bg-white text-warning" onclick="checkHealthAI()">
+                    <span><i class="bi bi-activity me-2"></i>AI Tư vấn</span>
                 </button>
             </div>
         </div>
 
-        <div class="row mb-4 search-section">
+        <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card p-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-                        <input type="text" id="foodSearch" class="form-control border-0" placeholder="Tra cứu thực phẩm (Bò, Gà, Bia...)" onkeyup="searchFood()">
+                <div class="card p-4">
+                    <label class="fw-bold mb-2 text-primary"><i class="bi bi-robot"></i> Hỏi Gemini về thực phẩm:</label>
+                    <div class="input-group input-group-lg">
+                        <input type="text" id="foodSearch" class="form-control border-primary" placeholder="Ví dụ: Bún bò, Trà sữa, Canh chua..." onkeypress="handleEnter(event)">
+                        <button class="btn btn-primary px-4" onclick="searchWithAI()">
+                            <i class="bi bi-send-fill"></i> Hỏi ngay
+                        </button>
                     </div>
-                    <div id="searchResult" class="mt-2 px-2"></div>
+                    
+                    <div id="aiLoading" class="text-center mt-3 ai-loading">
+                        <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                        <small class="text-primary fw-bold ms-2">Gemini đang phân tích...</small>
+                    </div>
+                    
+                    <div id="searchResult" class="mt-3"></div>
+                    
+                    <div id="menuResult" class="alert alert-light border mt-3" style="display:none;">
+                        <h5 class="text-primary fw-bold"><i class="bi bi-stars"></i> Kết quả từ Gemini:</h5>
+                        <hr>
+                        <div id="menuContent" class="small"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="menuResult" class="alert alert-success no-print" style="display:none;"></div>
-
         <div class="row mb-4">
             <div class="col-md-7">
                 <div class="card p-3 h-100">
-                    <h5 class="card-title">📊 Chỉ số máu (Kèm ngưỡng an toàn)</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0"><i class="bi bi-graph-up text-danger"></i> Chỉ số Xét Nghiệm</h5>
+                        <small class="text-muted">Đường nét đứt là ngưỡng an toàn</small>
+                    </div>
                     <canvas id="labChart"></canvas>
                 </div>
             </div>
             <div class="col-md-5">
                 <div class="card p-3 h-100">
-                    <h5 class="card-title">⚖️ Cân nặng & Mục tiêu</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-speedometer2 text-success"></i> Cân nặng & Mục tiêu</h5>
                     <canvas id="weightChart"></canvas>
-                    <div class="text-center mt-2 no-print">
-                        <small class="text-muted">Mục tiêu: <span id="targetWeightDisplay">--</span> kg</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-4 water-section">
-                <div class="card p-3 h-100 text-center bg-white">
-                    <h5 class="text-info">💧 Nước uống</h5>
-                    <h2 class="fw-bold text-primary my-3"><span id="waterCount">0</span> <small class="fs-6 text-muted">ly</small></h2>
-                    <div class="progress mb-3" style="height: 8px;">
-                        <div id="waterProgress" class="progress-bar bg-info" style="width: 0%"></div>
-                    </div>
-                    <button class="btn btn-outline-primary w-100 rounded-pill" onclick="addWater()">+ 1 Ly (250ml)</button>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card p-3 h-100">
-                    <h5>📒 Nhật ký & Đánh giá AI</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead><tr><th>Ngày</th><th>Nội dung</th><th>AI Đánh giá</th></tr></thead>
-                            <tbody id="mealTable"></tbody>
-                        </table>
+                    <div class="text-center mt-3">
+                        <span class="badge bg-success p-2">Mục tiêu: <span id="targetWeightDisplay">--</span> kg</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="row mb-4 no-print">
+        <div class="row mb-4">
              <div class="col-12">
                 <div class="card p-3">
-                    <h5>⏰ Lịch trình sinh hoạt</h5>
-                    <div class="row small text-muted" id="lifestyleTips"></div>
+                    <h5 class="fw-bold"><i class="bi bi-journal-bookmark-fill text-info"></i> Nhật ký Sức khỏe</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light"><tr><th>Ngày</th><th>Nội dung</th><th>Đánh giá</th></tr></thead>
+                            <tbody id="mealTable"></tbody>
+                        </table>
+                    </div>
                 </div>
              </div>
         </div>
     </div>
 
-    <footer class="no-print">
+    <footer>
         <div class="container">
-            <small>© 2025 Personal Health Tracker | Dev by Thai & Gemini AI</small>
+            <p class="mb-1 fw-bold">© 2025 Thai Health Tracker Project</p>
+            <small>
+                Phát triển bởi <span class="text-primary">Nguyễn Anh Thái</span> & <span class="text-primary">Gemini AI</span> 
+                <span class="ai-badge ms-1">⚡ AI Powered</span>
+            </small>
+            <div class="mt-2 text-muted" style="font-size: 0.8em;">
+                Made with <i class="bi bi-heart-fill heart-beat"></i> for a better health.
+            </div>
         </div>
     </footer>
 
-    <div class="modal fade" id="adminModal" tabindex="-1">
+    <div class="modal fade" id="keyModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Admin Tool: Tạo JSON</h5>
+                    <h5 class="modal-title fw-bold">🔑 Cài đặt Gemini API</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-                        <li class="nav-item"><button class="nav-link active" data-bs-target="#tabCheckup" data-bs-toggle="tab">Khám bệnh</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-target="#tabWeight" data-bs-toggle="tab">Cân nặng</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-target="#tabMeal" data-bs-toggle="tab">Nhật ký ăn</button></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="tabCheckup">
-                            <div class="mb-2"><label>Ngày:</label><input type="date" id="inpDate" class="form-control"></div>
-                            <div class="row">
-                                <div class="col-6 mb-2"><label>Acid Uric:</label><input type="number" id="inpUric" class="form-control" placeholder="µmol/L"></div>
-                                <div class="col-6 mb-2"><label>Men gan (ALT):</label><input type="number" id="inpAlt" class="form-control" placeholder="U/L"></div>
-                                <div class="col-6 mb-2"><label>Creatinine:</label><input type="number" id="inpCre" class="form-control" placeholder="µmol/L"></div>
-                                <div class="col-6 mb-2"><label>eGFR:</label><input type="number" id="inpEgfr" class="form-control" placeholder="ml/min"></div>
-                            </div>
-                            <div class="mb-2"><label>Ghi chú:</label><input type="text" id="inpNote" class="form-control"></div>
-                            <button class="btn btn-primary w-100 mt-2" onclick="genCheckupJSON()">Tạo Code JSON</button>
-                        </div>
-                        <div class="tab-pane fade" id="tabWeight">
-                            <div class="mb-2"><label>Ngày:</label><input type="date" id="inpWDate" class="form-control"></div>
-                            <div class="mb-2"><label>Cân nặng (kg):</label><input type="number" id="inpWeight" class="form-control"></div>
-                            <button class="btn btn-success w-100 mt-2" onclick="genWeightJSON()">Tạo Code JSON</button>
-                        </div>
-                        <div class="tab-pane fade" id="tabMeal">
-                             <div class="mb-2"><label>Ngày:</label><input type="date" id="inpMDate" class="form-control"></div>
-                             <div class="mb-2"><label>Nội dung:</label><textarea id="inpMContent" class="form-control" rows="2"></textarea></div>
-                             <div class="mb-2"><label>AI Đánh giá:</label><textarea id="inpMEval" class="form-control" rows="2"></textarea></div>
-                             <button class="btn btn-warning w-100 mt-2" onclick="genMealJSON()">Tạo Code JSON</button>
-                        </div>
+                    <div class="alert alert-info small">
+                        API Key giúp kích hoạt tính năng AI (Gợi ý món, Phân tích thực phẩm). 
+                        Key được lưu <strong>cục bộ</strong> trên trình duyệt của bạn.
                     </div>
-                    <div class="mt-3">
-                        <label>Kết quả (Copy và dán vào data.json):</label>
-                        <textarea id="jsonOutput" class="form-control bg-light text-monospace" rows="4" readonly></textarea>
+                    <label class="form-label">Dán API Key vào đây:</label>
+                    <input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="AIzaSy...">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="showKey">
+                        <label class="form-check-label small" for="showKey">Hiện ký tự</label>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="saveKey()">Lưu cấu hình</button>
+                    <div class="text-center mt-3">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small text-decoration-none">Chưa có Key? Lấy miễn phí tại Google AI Studio ↗</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="analyticsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="adminModal" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Phân tích tương quan: Cân nặng vs Gan/Gout</h5>
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">🛠️ Công cụ Nhập liệu</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-muted">Biểu đồ này giúp bạn trả lời câu hỏi: "Giảm cân có giúp giảm men gan và acid uric không?"</p>
-                    <canvas id="corrChart"></canvas>
+                    <ul class="nav nav-pills nav-fill mb-3" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCheckup">Xét nghiệm</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabWeight">Cân nặng</button></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabCheckup">
+                            <input type="date" id="inpDate" class="form-control mb-2">
+                            <div class="row g-2">
+                                <div class="col-6"><input type="number" id="inpUric" class="form-control" placeholder="Acid Uric"></div>
+                                <div class="col-6"><input type="number" id="inpAlt" class="form-control" placeholder="Men gan (ALT)"></div>
+                                <div class="col-6"><input type="number" id="inpCre" class="form-control" placeholder="Creatinine"></div>
+                                <div class="col-6"><input type="number" id="inpEgfr" class="form-control" placeholder="eGFR (Thận)"></div>
+                            </div>
+                            <button class="btn btn-success w-100 mt-3" onclick="genCheckupJSON()">Tạo Code JSON</button>
+                        </div>
+                        <div class="tab-pane fade" id="tabWeight">
+                            <input type="date" id="inpWDate" class="form-control mb-2">
+                            <input type="number" id="inpWeight" class="form-control mb-2" placeholder="Số kg (VD: 73.5)">
+                            <button class="btn btn-primary w-100 mt-3" onclick="genWeightJSON()">Tạo Code JSON</button>
+                        </div>
+                    </div>
+                    <textarea id="jsonOutput" class="form-control mt-3 bg-light font-monospace" rows="3" readonly placeholder="Kết quả sẽ hiện ở đây..."></textarea>
                 </div>
             </div>
         </div>
@@ -215,30 +215,145 @@
 
     <script>
         let foodDB = [];
-        let fullData = {};
-        const CUP_SIZE = 0.25; let dailyTarget = 2.5; 
-
-        // KHỞI TẠO
+        let healthProfile = {};
+        
+        // --- KHỞI TẠO ---
         fetch('data.json').then(r => r.json()).then(data => {
             fullData = data;
             foodDB = data.food_database;
+            healthProfile = {
+                conditions: data.profile.conditions.join(", "),
+                lastCheckup: data.medical_checkups[data.medical_checkups.length - 1]
+            };
             
-            // Render UI
+            document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
+            
             renderLabChart(data.medical_checkups);
             renderWeightChart(data.weight_log, data.profile.target_weight);
             renderMeals(data.meal_logs);
-            renderLifestyle(data.lifestyle_tips);
-            document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
-
-            // Logic nước uống
-            calculateTarget(data.medical_checkups[data.medical_checkups.length - 1]);
-            loadWater();
-
-            // Khởi tạo biểu đồ phân tích
-            initCorrelationChart(data);
+            
+            // Kiểm tra Key
+            const key = localStorage.getItem('geminiKey');
+            if(key) document.getElementById('apiKeyInput').value = key;
         });
 
-        // --- 1. LOGIC CƠ BẢN (Chart, Water, Search) ---
+        // --- XỬ LÝ API KEY ---
+        document.getElementById('showKey').addEventListener('change', function() {
+            document.getElementById('apiKeyInput').type = this.checked ? 'text' : 'password';
+        });
+        function saveKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if(key) {
+                localStorage.setItem('geminiKey', key);
+                alert('Đã lưu API Key thành công!');
+                bootstrap.Modal.getInstance(document.getElementById('keyModal')).hide();
+            }
+        }
+
+        // --- GỌI GEMINI (Hàm lõi) ---
+        async function callGemini(prompt) {
+            const key = localStorage.getItem('geminiKey');
+            if(!key) {
+                const modal = new bootstrap.Modal(document.getElementById('keyModal'));
+                modal.show();
+                return null;
+            }
+
+            document.getElementById('aiLoading').style.display = 'block';
+            document.getElementById('menuResult').style.display = 'none';
+            document.getElementById('searchResult').innerHTML = '';
+            
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                document.getElementById('aiLoading').style.display = 'none';
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                document.getElementById('aiLoading').style.display = 'none';
+                alert('Lỗi kết nối AI: ' + error);
+                return null;
+            }
+        }
+
+        // --- CÁC TÍNH NĂNG AI ---
+        async function searchWithAI() {
+            const query = document.getElementById('foodSearch').value;
+            if(!query) return;
+            
+            // Check DB trước
+            const local = foodDB.find(f => f.name.toLowerCase().includes(query.toLowerCase()));
+            if(local) {
+                let color = local.status === 'green' ? 'success' : (local.status === 'yellow' ? 'warning' : 'danger');
+                document.getElementById('searchResult').innerHTML = 
+                    `<div class="alert alert-${color}"><strong>(Có sẵn) ${local.name}</strong>: ${local.reason}</div>`;
+                return;
+            }
+
+            // Hỏi AI
+            const prompt = `Tôi bị: ${healthProfile.conditions}. Chỉ số: Acid Uric ${healthProfile.lastCheckup.uric_acid}, Men gan ${healthProfile.lastCheckup.alt_liver}, eGFR ${healthProfile.lastCheckup.egfr}. 
+            Đánh giá món: "${query}". Trả về JSON: {"status": "green/yellow/red", "name": "${query}", "reason": "ngắn gọn"}`;
+            
+            const res = await callGemini(prompt);
+            if(res) {
+                try {
+                    const json = JSON.parse(res.replace(/```json|```/g, '').trim());
+                    let color = json.status === 'green' ? 'success' : (json.status === 'yellow' ? 'warning' : 'danger');
+                    let icon = json.status === 'green' ? '🟢 Nên ăn' : (json.status === 'yellow' ? '🟡 Hạn chế' : '🔴 Tránh xa');
+                    document.getElementById('searchResult').innerHTML = 
+                        `<div class="alert alert-${color}"><strong>${icon} ${json.name}</strong><br>${json.reason}</div>`;
+                } catch(e) {
+                    document.getElementById('searchResult').innerHTML = `<div class="alert alert-light border">${marked.parse(res)}</div>`;
+                }
+            }
+        }
+
+        async function generateAIMenu() {
+            const prompt = `Gợi ý thực đơn 1 ngày (Sáng/Trưa/Chiều) cho người bị Gout, Men gan cao, Trào ngược. Món Việt Nam, bình dân. Định dạng Markdown.`;
+            const res = await callGemini(prompt);
+            if(res) {
+                document.getElementById('menuResult').style.display = 'block';
+                document.getElementById('menuContent').innerHTML = marked.parse(res);
+            }
+        }
+        
+        async function checkHealthAI() {
+            const prompt = `Dựa trên chỉ số: Uric ${healthProfile.lastCheckup.uric_acid}, ALT ${healthProfile.lastCheckup.alt_liver}, eGFR ${healthProfile.lastCheckup.egfr}. Hãy đưa ra 3 lời khuyên y tế quan trọng nhất ngay lúc này.`;
+            const res = await callGemini(prompt);
+            if(res) {
+                document.getElementById('menuResult').style.display = 'block';
+                document.getElementById('menuContent').innerHTML = marked.parse(res);
+            }
+        }
+
+        function handleEnter(e) { if(e.key === 'Enter') searchWithAI(); }
+
+        // --- ADMIN TOOLS ---
+        function genCheckupJSON() {
+            const obj = {
+                date: document.getElementById('inpDate').value,
+                uric_acid: parseFloat(document.getElementById('inpUric').value),
+                alt_liver: parseFloat(document.getElementById('inpAlt').value),
+                creatinine: parseFloat(document.getElementById('inpCre').value),
+                egfr: parseFloat(document.getElementById('inpEgfr').value),
+                note: "Cập nhật mới"
+            };
+            copyJSON(JSON.stringify(obj, null, 2) + ",");
+        }
+        function genWeightJSON() {
+            const obj = { date: document.getElementById('inpWDate').value, value: parseFloat(document.getElementById('inpWeight').value) };
+            copyJSON(JSON.stringify(obj, null, 2) + ",");
+        }
+        function copyJSON(str) {
+            const out = document.getElementById('jsonOutput');
+            out.value = str; out.select(); document.execCommand('copy');
+            alert('Đã copy JSON! Hãy dán vào file data.json');
+        }
+
+        // --- CHARTS ---
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
             const labels = logs.map(l => l.date);
@@ -247,23 +362,15 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Gout', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension: 0.3, yAxisID: 'y' },
-                        { label: 'Men gan', data: logs.map(l => l.alt_liver), borderColor: '#f1c40f', tension: 0.3, yAxisID: 'y1' },
-                        { label: 'Thận (eGFR)', data: logs.map(l => l.egfr), borderColor: '#2ecc71', borderDash:[5,5], tension: 0.3, yAxisID: 'y1', hidden: false },
-                        // Ngưỡng
-                        { label: 'Safe Gout', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.2)', borderDash:[10,5], pointRadius:0, yAxisID:'y' }
+                        { label: 'Acid Uric', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension:0.3, yAxisID:'y' },
+                        { label: 'Men gan (ALT)', data: logs.map(l => l.alt_liver), borderColor: '#f39c12', tension:0.3, yAxisID:'y1' },
+                        { label: 'Thận (eGFR)', data: logs.map(l => l.egfr), borderColor: '#2ecc71', borderDash:[5,5], tension:0.3, yAxisID:'y1' },
+                        { label: 'Ngưỡng Gout (420)', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.3)', borderDash:[10,5], pointRadius:0, yAxisID:'y' }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { type: 'linear', display: true, position: 'left', title: {display:true, text:'Uric (µmol/L)'} },
-                        y1: { type: 'linear', display: true, position: 'right', grid:{drawOnChartArea:false} }
-                    }
-                }
+                options: { responsive: true, scales: { y: {position:'left'}, y1: {position:'right', grid:{drawOnChartArea:false}} } }
             });
         }
-
         function renderWeightChart(logs, target) {
             const ctx = document.getElementById('weightChart').getContext('2d');
             new Chart(ctx, {
@@ -271,156 +378,18 @@
                 data: {
                     labels: logs.map(l => l.date),
                     datasets: [
-                        { label: 'Kg', data: logs.map(l => l.value), borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'Cân nặng (kg)', data: logs.map(l => l.value), borderColor: '#3498db', backgroundColor:'rgba(52,152,219,0.1)', fill:true, tension:0.3 },
                         { label: 'Mục tiêu', data: Array(logs.length).fill(target), borderColor: '#27ae60', borderDash:[5,5], pointRadius:0 }
                     ]
                 }
             });
         }
-
-        function searchFood() {
-            const input = document.getElementById('foodSearch').value.toLowerCase();
-            const res = document.getElementById('searchResult');
-            res.innerHTML = '';
-            if(input.length < 2) return;
-            const found = foodDB.filter(i => i.name.toLowerCase().includes(input));
-            if(found.length){
-                found.forEach(i => {
-                    let color = i.status === 'green' ? 'success' : (i.status === 'yellow' ? 'warning' : 'danger');
-                    let icon = i.status === 'green' ? '🟢' : (i.status === 'yellow' ? '🟡' : '🔴');
-                    res.innerHTML += `<div class="alert alert-${color} py-2 mb-2 small"><strong>${icon} ${i.name}</strong>: ${i.reason}</div>`;
-                });
-            } else res.innerHTML = '<div class="text-muted small p-2">Không tìm thấy.</div>';
-        }
-
-        // --- 2. LOGIC NÂNG CAO (Correlation Chart) ---
-        function initCorrelationChart(data) {
-            // Ghép dữ liệu: Tìm ngày nào có cả Cân nặng và Xét nghiệm (gần đúng)
-            // Để đơn giản, lấy danh sách xét nghiệm làm chuẩn, tìm cân nặng gần ngày đó nhất
-            const labels = data.medical_checkups.map(m => m.date);
-            const altData = data.medical_checkups.map(m => m.alt_liver);
-            const weightData = data.medical_checkups.map(m => {
-                // Tìm cân nặng gần ngày xét nghiệm nhất
-                const mDate = new Date(m.date);
-                let closestW = null;
-                let minDiff = Infinity;
-                data.weight_log.forEach(w => {
-                    const wDate = new Date(w.date);
-                    const diff = Math.abs(mDate - wDate);
-                    if(diff < minDiff) { minDiff = diff; closestW = w.value; }
-                });
-                return closestW;
-            });
-
-            const ctx = document.getElementById('corrChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Cân nặng (Trục trái)', data: weightData, borderColor: '#3498db', yAxisID: 'y', tension: 0.3 },
-                        { label: 'Men gan ALT (Trục phải)', data: altData, borderColor: '#f1c40f', yAxisID: 'y1', tension: 0.3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { position: 'left', title: {display:true, text:'Kg'} },
-                        y1: { position: 'right', title: {display:true, text:'U/L'}, grid:{drawOnChartArea:false} }
-                    }
-                }
-            });
-        }
-
-        // --- 3. LOGIC ADMIN TOOL (JSON Generator) ---
-        function genCheckupJSON() {
-            const obj = {
-                date: document.getElementById('inpDate').value,
-                uric_acid: parseFloat(document.getElementById('inpUric').value),
-                alt_liver: parseFloat(document.getElementById('inpAlt').value),
-                creatinine: parseFloat(document.getElementById('inpCre').value) || null,
-                egfr: parseFloat(document.getElementById('inpEgfr').value) || null,
-                note: document.getElementById('inpNote').value
-            };
-            showJSON(JSON.stringify(obj, null, 2) + ",");
-        }
-        function genWeightJSON() {
-            const obj = { date: document.getElementById('inpWDate').value, value: parseFloat(document.getElementById('inpWeight').value) };
-            showJSON(JSON.stringify(obj, null, 2) + ",");
-        }
-        function genMealJSON() {
-            const obj = {
-                date: document.getElementById('inpMDate').value,
-                content: document.getElementById('inpMContent').value,
-                evaluation: document.getElementById('inpMEval').value
-            };
-            showJSON(JSON.stringify(obj, null, 2) + ",");
-        }
-        function showJSON(str) {
-            const out = document.getElementById('jsonOutput');
-            out.value = str;
-            out.select();
-            document.execCommand('copy');
-            alert('Đã tạo và COPY code! Hãy paste vào data.json');
-        }
-
-        // --- 4. LOGIC MENU GENERATOR ---
-        function generateMenu() {
-            const greens = foodDB.filter(f => f.status === 'green');
-            if(greens.length < 3) { alert('Chưa đủ dữ liệu món xanh!'); return; }
-            
-            // Random 3 món
-            const shuffled = greens.sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 3);
-            
-            const html = `<strong>💡 Gợi ý thực đơn an toàn hôm nay:</strong><br>
-                - Món 1: ${selected[0].name} (${selected[0].reason})<br>
-                - Món 2: ${selected[1].name}<br>
-                - Món 3: ${selected[2].name}`;
-            
-            const div = document.getElementById('menuResult');
-            div.innerHTML = html;
-            div.style.display = 'block';
-        }
-
-        // --- 5. CÁC HÀM UI PHỤ ---
-        function renderLifestyle(tips) {
-            document.getElementById('lifestyleTips').innerHTML = `
-                <div class="col-6 col-md-3">🌅 Sáng: ${tips.morning}</div>
-                <div class="col-6 col-md-3">🍱 Ăn: ${tips.eating}</div>
-                <div class="col-6 col-md-3">🌙 Tối: ${tips.evening}</div>
-                <div class="col-6 col-md-3">🏃 Tập: ${tips.exercise}</div>
-            `;
-        }
         function renderMeals(logs) {
              const tbody = document.getElementById('mealTable');
              tbody.innerHTML = '';
              logs.slice().reverse().slice(0,10).forEach(log => {
-                tbody.innerHTML += `<tr><td>${log.date}</td><td>${log.content}</td><td><em class="text-success small">${log.evaluation}</em></td></tr>`;
+                tbody.innerHTML += `<tr><td><small>${log.date}</small></td><td>${log.content}</td><td><span class="badge bg-success bg-opacity-10 text-success">${log.evaluation}</span></td></tr>`;
             });
-        }
-        function calculateTarget(latest) {
-            if(latest.uric_acid > 400 || latest.alt_liver > 40) dailyTarget = 3.0; else dailyTarget = 2.5;
-        }
-        function loadWater() {
-            const today = new Date().toLocaleDateString('vi-VN');
-            const savedDate = localStorage.getItem('waterDate');
-            let count = (savedDate === today) ? parseInt(localStorage.getItem('waterCount')) || 0 : 0;
-            if(savedDate !== today) { localStorage.setItem('waterDate', today); localStorage.setItem('waterCount', 0); }
-            updateWaterUI(count);
-        }
-        function addWater() {
-            let count = parseInt(localStorage.getItem('waterCount')) || 0;
-            count++;
-            localStorage.setItem('waterCount', count);
-            localStorage.setItem('waterDate', new Date().toLocaleDateString('vi-VN'));
-            updateWaterUI(count);
-        }
-        function updateWaterUI(count) {
-            document.getElementById('waterCount').innerText = count;
-            const percent = Math.min((count * CUP_SIZE / dailyTarget) * 100, 100);
-            const bar = document.getElementById('waterProgress');
-            bar.style.width = percent + '%';
         }
     </script>
 </body>

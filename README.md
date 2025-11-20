@@ -1,3 +1,28 @@
+# Hướng dẫn sử dụng
+### 1. Cài đặt PWA (Trên điện thoại):
+
+Mở trang web bằng Chrome (Android) hoặc Safari (iPhone).
+
+Nhấn nút Menu (3 chấm) hoặc nút Share.
+
+Chọn "Thêm vào màn hình chính" (Add to Home Screen).
+
+### 2. Công cụ Admin (Tạo Code JSON):
+
+Bấm nút "🛠️ Tạo JSON".
+
+Nhập liệu vào form (Ví dụ: Cân nặng hôm nay).
+
+Bấm nút "Tạo Code" -> Copy nội dung.
+
+Mở file data.json, paste nội dung đó vào cuối danh sách tương ứng (nhớ thêm dấu phẩy nếu cần).
+
+### 3. Doctor View (In báo cáo):
+
+Khi đi khám bệnh, bấm nút "🖨️ Doctor View".
+
+Trang web sẽ tự động ẩn các nút bấm thừa, chỉ giữ lại Biểu đồ và Thông tin để bác sĩ xem.
+
 # Hướng Dẫn Cập Nhật Health Tracker
 
 Đây là file hướng dẫn cách sử dụng AI để cập nhật dữ liệu cho trang web theo dõi sức khỏe.
@@ -42,3 +67,14 @@
 *Câu lệnh:*
 
 > "Tôi muốn đổi mục tiêu cân nặng xuống còn [Số kg] và muốn AI tư vấn lại lượng Calo cần thiết. Hãy cập nhật phần profile trong file JSON."
+
+# 🏥 Health Tracker: All-in-One Upgrade Package
+##### Bộ mã nguồn nâng cấp toàn diện cho trang theo dõi sức khỏe cá nhân.Tính năng mới:
+
+1. PWA (Progressive Web App): Cài đặt lên điện thoại như App.
+
+2. Admin Tool: Công cụ tạo code JSON tự động (không cần gõ tay).
+
+3. Doctor View: Chế độ in ấn báo cáo chuyên nghiệp cho bác sĩ.
+
+4. Smart Menu: Gợi ý thực đơn ngẫu nhiên dựa trên database.

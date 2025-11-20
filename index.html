@@ -252,13 +252,12 @@
 
         // --- GỌI GEMINI (Hàm lõi) ---
         // 3. GỌI GEMINI API (Đã vá lỗi & Bắt lỗi chi tiết)
+        // 3. GỌI GEMINI API (Đã sửa Model ID)
         async function callGemini(prompt) {
             const key = localStorage.getItem('geminiKey');
             
-            // Kiểm tra xem đã nhập key chưa
             if(!key) {
                 alert('Vui lòng nhập Gemini API Key trong phần Cài đặt trước!');
-                // Tự động mở modal cài đặt
                 const keyModal = new bootstrap.Modal(document.getElementById('keyModal'));
                 keyModal.show();
                 return null;
@@ -267,7 +266,11 @@
             document.getElementById('aiLoading').style.display = 'block';
             
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                // SỬA LỖI Ở ĐÂY: Đổi tên model thành 'gemini-1.5-flash-latest'
+                const modelName = 'gemini-1.5-flash-latest'; 
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -278,32 +281,32 @@
                 const data = await response.json();
                 document.getElementById('aiLoading').style.display = 'none';
 
-                // --- BẮT LỖI API ---
-                // Trường hợp 1: Google trả về lỗi cụ thể (ví dụ: sai Key)
+                // Bắt lỗi chi tiết từ Google
                 if (data.error) {
-                    console.error("API Error Details:", data.error);
-                    alert('Lỗi từ Google: ' + data.error.message);
+                    console.error("API Error:", data.error);
+                    // Nếu vẫn lỗi model not found, gợi ý dùng gemini-pro
+                    if(data.error.message.includes('not found')) {
+                        alert('Lỗi phiên bản Model. Hãy thử đổi modelName trong code thành "gemini-pro".');
+                    } else {
+                        alert('Lỗi từ Google: ' + data.error.message);
+                    }
                     return null;
                 }
 
-                // Trường hợp 2: Không có câu trả lời (candidates rỗng)
                 if (!data.candidates || data.candidates.length === 0) {
-                    console.warn("No candidates returned", data);
-                    alert('AI không phản hồi (Có thể do bộ lọc an toàn hoặc lỗi mạng). Hãy thử lại.');
+                    alert('AI không phản hồi. Hãy thử lại.');
                     return null;
                 }
 
-                // Nếu ổn thì trả về text
                 return data.candidates[0].content.parts[0].text;
 
             } catch (error) {
                 document.getElementById('aiLoading').style.display = 'none';
-                console.error("Fetch Error:", error);
-                alert('Lỗi kết nối mạng hoặc lỗi trình duyệt: ' + error.message);
+                console.error("Network Error:", error);
+                alert('Lỗi kết nối: ' + error.message);
                 return null;
             }
         }
-
         // --- CÁC TÍNH NĂNG AI ---
         async function searchWithAI() {
             const query = document.getElementById('foodSearch').value;
@@ -379,21 +382,90 @@
         }
 
         // --- CHARTS ---
+        // 1. HÀM VẼ BIỂU ĐỒ NÂNG CAO (Có hiển thị Event)
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
             const labels = logs.map(l => l.date);
+
+            // --- XỬ LÝ LOGIC EVENT ---
+            // Tự động phát hiện từ khóa trong 'note' để đổi màu/hình dáng điểm đo
+            const pointColors = logs.map(l => {
+                const n = l.note ? l.note.toLowerCase() : "";
+                if (n.includes('cấp') || n.includes('cao') || n.includes('xấu')) return '#e74c3c'; // Đỏ (Nguy hiểm)
+                if (n.includes('tốt') || n.includes('hồi phục') || n.includes('giảm')) return '#27ae60'; // Xanh (Tốt)
+                return '#f1c40f'; // Vàng (Bình thường)
+            });
+
+            const pointStyles = logs.map(l => {
+                const n = l.note ? l.note.toLowerCase() : "";
+                if (n.includes('hồi phục') || n.includes('tốt')) return 'star'; // Hình ngôi sao cho sự kiện tốt
+                if (n.includes('cấp')) return 'rectRot'; // Hình thoi cho sự kiện xấu
+                return 'circle';
+            });
+
+            const pointSizes = logs.map(l => {
+                 // Nếu có ghi chú sự kiện thì điểm to hơn bình thường (radius 8 vs 4)
+                 return (l.note && l.note.length > 5) ? 8 : 4; 
+            });
+
+            // --- CẤU HÌNH DATASET ---
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Acid Uric', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension:0.3, yAxisID:'y' },
-                        { label: 'Men gan (ALT)', data: logs.map(l => l.alt_liver), borderColor: '#f39c12', tension:0.3, yAxisID:'y1' },
-                        { label: 'Thận (eGFR)', data: logs.map(l => l.egfr), borderColor: '#2ecc71', borderDash:[5,5], tension:0.3, yAxisID:'y1' },
-                        { label: 'Ngưỡng Gout (420)', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.3)', borderDash:[10,5], pointRadius:0, yAxisID:'y' }
+                        { 
+                            label: 'Gout (Acid Uric)', 
+                            data: logs.map(l => l.uric_acid), 
+                            borderColor: '#e74c3c',
+                            backgroundColor: '#e74c3c',
+                            tension: 0.3, 
+                            yAxisID: 'y',
+                            // Áp dụng style động
+                            pointBackgroundColor: pointColors,
+                            pointRadius: pointSizes,
+                            pointStyle: pointStyles,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        },
+                        { 
+                            label: 'Men gan (ALT)', 
+                            data: logs.map(l => l.alt_liver), 
+                            borderColor: '#f1c40f', 
+                            tension: 0.3, 
+                            yAxisID: 'y1',
+                            pointRadius: 0 // Men gan để điểm nhỏ cho đỡ rối
+                        },
+                        // Ngưỡng an toàn
+                        { label: 'Ngưỡng Gout (420)', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.2)', borderDash:[5,5], pointRadius:0, yAxisID:'y' }
                     ]
                 },
-                options: { responsive: true, scales: { y: {position:'left'}, y1: {position:'right', grid:{drawOnChartArea:false}} } }
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            usePointStyle: true,
+                            callbacks: {
+                                // Tùy biến hiển thị Tooltip để hiện Ghi chú sự kiện
+                                footer: function(tooltipItems) {
+                                    const index = tooltipItems[0].dataIndex;
+                                    const note = logs[index].note;
+                                    if (note) return '\n📌 Sự kiện: ' + note;
+                                    return '';
+                                }
+                            }
+                        },
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: {display:true, text:'Gout (µmol/L)'} },
+                        y1: { type: 'linear', display: true, position: 'right', grid:{drawOnChartArea:false} }
+                    }
+                }
             });
         }
         function renderWeightChart(logs, target) {

@@ -334,27 +334,80 @@
             document.getElementById('waterPercentText').innerText = Math.round(pct)+'%';
         }
 
-        // --- BẢNG CHI TIẾT ---
+        
+        // --- CẬP NHẬT: BẢNG SO SÁNH CÓ GIẢI THÍCH CHI TIẾT ---
         function renderCompareTable(logs) {
-            const th=document.querySelector('#compareTable thead'); const tb=document.querySelector('#compareTable tbody');
-            let h=`<tr><th class="text-start bg-light">Chỉ số</th><th class="bg-light">Ngưỡng</th>`; logs.forEach(l=>h+=`<th>${l.date}</th>`); th.innerHTML=h+'</tr>';
-            const m=[
-                {g:true,n:'Gout/Thận'}, {n:'Acid Uric',k:'uric_acid',max:420}, {n:'Creatinine',k:'creatinine',min:62,max:120}, {n:'eGFR',k:'egfr',min:90},
-                {g:true,n:'Gan'}, {n:'ALT',k:'alt_liver',max:40}, {n:'AST',k:'ast_liver',max:37}, {n:'GGT',k:'ggt_liver',max:50},
-                {g:true,n:'Mỡ Máu'}, {n:'Cholest.',k:'cholesterol',max:5.2}, {n:'Trigly.',k:'triglyceride',max:1.88}, {n:'Glucose',k:'glucose',max:6.4},
-                {g:true,n:'Máu'}, {n:'WBC',k:'wbc',min:4.5,max:9}, {n:'RBC',k:'rbc',min:3.7,max:5.2}, {n:'HGB',k:'hgb',min:9,max:16.5}
+            const thead = document.querySelector('#compareTable thead');
+            const tbody = document.querySelector('#compareTable tbody');
+            
+            // 1. Tạo Header cột
+            let hHTML = `<tr><th class="text-start bg-light" style="width: 35%;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`;
+            logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`);
+            thead.innerHTML = hHTML + '</tr>';
+            
+            // 2. Danh sách chỉ số kèm giải thích (d: description)
+            const metrics = [
+                // Nhóm GOUT & THẬN
+                {group:true, name:'GOUT & THẬN'},
+                {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout. Cao gây lắng đọng tinh thể urate ở khớp.'}, 
+                {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Sản phẩm thoái hóa của cơ. Chỉ số quan trọng nhất đánh giá chức năng lọc máu của thận.'}, 
+                {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. < 60 là suy thận. Càng cao càng tốt.'},
+                
+                // Nhóm GAN
+                {group:true, name:'GAN (MEN GAN)'},
+                {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng cao khi tế bào gan bị hủy hoại (viêm gan, nhiễm độc).'}, 
+                {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan. Tăng do tổn thương gan, tim, cơ hoặc vận động quá mạnh.'}, 
+                {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Men gan rất nhạy cảm với rượu bia, thuốc tây và tình trạng tắc mật.'},
+
+                // Nhóm MỠ MÁU & ĐƯỜNG
+                {group:true, name:'MỠ MÁU & ĐƯỜNG HUYẾT'},
+                {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần. Cao gây xơ vữa động mạch.'}, 
+                {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính. Tăng do ăn nhiều tinh bột/ngọt/béo. Gây gan nhiễm mỡ.'}, 
+                {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Giúp dọn dẹp mạch máu. Chỉ số này càng cao càng tốt.'},
+                {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói. Đánh giá nguy cơ tiểu đường.'},
+
+                // Nhóm CÔNG THỨC MÁU
+                {group:true, name:'CÔNG THỨC MÁU'},
+                {n:'WBC (Bạch cầu)', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Tế bào miễn dịch. Tăng khi cơ thể bị viêm hoặc nhiễm trùng.'}, 
+                {n:'RBC (Hồng cầu)', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Tế bào vận chuyển oxy. Thấp là thiếu máu, cao là đa hồng cầu (máu cô đặc).'}, 
+                {n:'HGB (Huyết sắc tố)', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Lượng huyết sắc tố trong máu. Phản ánh chính xác tình trạng thiếu máu.'},
+                {n:'PLT (Tiểu cầu)', k:'plt', u:'K/µL', min:150, max:350, d:'Tế bào đông máu. Thấp dễ chảy máu, cao dễ gây cục máu đông.'}
             ];
-            tb.innerHTML=''; m.forEach(i=>{
-                if(i.g) tb.innerHTML+=`<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-start ps-3 small">${i.n}</td></tr>`;
-                else {
-                    let rng = i.min&&i.max?`${i.min}-${i.max}`:(i.max?`<${i.max}`:`>${i.min}`);
-                    let row=`<tr><td class="text-start ps-3 fw-bold">${i.n}</td><td class="text-muted small"><em>${rng}</em></td>`;
-                    logs.forEach(l=>{
-                        let v=l[i.k]||'-', cls='';
-                        if(typeof v==='number'){ if((i.max&&v>i.max)||(i.min&&v<i.min)) cls='text-danger fw-bold'; }
-                        row+=`<td class="${cls}">${v}</td>`;
+            
+            // 3. Render dữ liệu
+            tbody.innerHTML = '';
+            metrics.forEach(m => {
+                if(m.group) {
+                    // Dòng tiêu đề nhóm
+                    tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-uppercase small ps-3 pt-3">${m.name}</td></tr>`;
+                } else {
+                    // Dòng dữ liệu chi tiết
+                    let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
+                    
+                    // Cột 1: Tên + Giải thích (Quan trọng)
+                    let row = `<tr>
+                        <td class="text-start ps-3">
+                            <div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.85em">(${m.u})</span></div>
+                            <div class="text-muted fst-italic mt-1" style="font-size: 0.75rem; line-height: 1.2;">${m.d}</div>
+                        </td>
+                        <td class="text-muted small align-middle"><em>${range}</em></td>`;
+                    
+                    // Các cột giá trị theo ngày
+                    logs.forEach(l => {
+                        let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
+                        let cls = 'align-middle';
+                        
+                        // Logic tô màu cảnh báo
+                        if(typeof v === 'number') {
+                            if ((m.max && v > m.max) || (m.min && v < m.min)) {
+                                cls += ' text-danger fw-bold'; // Cảnh báo đỏ nếu vượt ngưỡng
+                            } else if (m.k === 'hdl' && v >= m.min) {
+                                cls += ' text-success fw-bold'; // Mỡ tốt cao thì màu xanh
+                            }
+                        }
+                        row += `<td class="${cls}">${v}</td>`;
                     });
-                    tb.innerHTML+=row+'</tr>';
+                    tbody.innerHTML += row + '</tr>';
                 }
             });
         }

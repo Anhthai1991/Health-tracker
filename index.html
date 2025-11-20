@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thai Health Ultimate Pro</title>
+    <title>Thai Health Ultimate Final</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,9 +22,6 @@
         .tool-btn { border-radius: 12px; padding: 15px; font-weight: 600; border: none; width: 100%; margin-bottom: 10px; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .ai-loading { display: none; }
         .water-section { background: white; border-radius: 16px; padding: 20px; text-align: center; }
-        .cal-badge { font-size: 0.8em; background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
-        
-        /* Legend cho biểu đồ sự kiện */
         .chart-legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.85rem; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
 
@@ -140,8 +137,14 @@
         <div class="row mb-4">
             <div class="col-md-4 water-section h-100 mb-3">
                 <h5 class="text-info"><i class="bi bi-droplet-fill"></i> Nước uống</h5>
-                <h1 class="display-2 fw-bold text-primary" id="waterCount">0</h1>
-                <p class="text-muted">ly / Mục tiêu: <span id="waterTargetDisplay">--</span> L</p>
+                <div class="my-3">
+                    <h1 class="display-2 fw-bold text-primary mb-0" id="waterCount">0</h1>
+                    <p class="text-muted mb-2">ly / Mục tiêu: <span id="waterTargetDisplay">--</span> L</p>
+                    <div class="progress" style="height: 10px; border-radius: 10px; background-color: #e9ecef;">
+                        <div id="waterProgress" class="progress-bar bg-primary" role="progressbar" style="width: 0%; border-radius: 10px; transition: width 0.6s ease;"></div>
+                    </div>
+                    <small class="text-muted mt-1 d-block text-end" id="waterPercentText">0%</small>
+                </div>
                 <div class="d-grid gap-2">
                     <button class="btn btn-outline-primary rounded-pill" onclick="addWater()">+ Uống 1 Ly</button>
                     <button class="btn btn-sm btn-link text-muted" onclick="resetWater()">Reset</button>
@@ -175,7 +178,7 @@
         <div class="container"><small class="text-muted">© 2025 Thai Health Ultimate | Powered by Gemini 2.5</small></div>
     </footer>
 
-    <div class="modal fade" id="keyModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Cài đặt Gemini API</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="small text-muted">Hệ thống ưu tiên: <b>gemini-2.5-flash</b> (Stable). Tự động chuyển sang 2.0 nếu lỗi.</p><input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="Paste API Key..."><div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="showKey"><label class="form-check-label small" for="showKey">Hiện Key</label></div><button class="btn btn-primary w-100" onclick="saveKey()">Lưu Key</button></div></div></div></div>
+    <div class="modal fade" id="keyModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Cài đặt Gemini API</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><p class="small text-muted">Hệ thống ưu tiên: <b>gemini-2.5-flash</b>. Tự động chuyển sang 2.0 nếu lỗi.</p><input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="Paste API Key..."><div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="showKey"><label class="form-check-label small" for="showKey">Hiện Key</label></div><button class="btn btn-primary w-100" onclick="saveKey()">Lưu Key</button></div></div></div></div>
 
     <div class="modal fade" id="adminModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -223,14 +226,7 @@
     <script>
         let foodDB = [], healthProfile = {};
         const CUP_SIZE = 0.25; let dailyTarget = 2.5; 
-        
-        // DANH SÁCH MODEL ƯU TIÊN (Dựa trên ảnh bạn cung cấp)
-        // Chỉ chọn bản Stable hoặc Flash mới nhất, tránh bản Preview gây lỗi Rate Limit
-        const MODEL_LIST = [
-            "gemini-2.5-flash",         
-            "gemini-2.0-flash-001",
-            "gemini-2.0-flash-lite-001"
-        ];
+        const MODEL_LIST = ["gemini-2.5-flash", "gemini-2.0-flash-001", "gemini-2.0-flash-lite-001"];
 
         fetch('data.json').then(r => r.json()).then(data => {
             foodDB = data.food_database;
@@ -257,70 +253,57 @@
             else new bootstrap.Modal(document.getElementById('keyModal')).show();
         });
 
-        // --- AI ENGINE: MULTI-MODEL AUTO-SWITCH ---
+        // --- AI ENGINE ---
         async function callGemini(prompt) {
             const key = localStorage.getItem('geminiKey');
             if(!key) { alert('Vui lòng nhập API Key!'); return null; }
-
             document.getElementById('aiLoading').style.display = 'block';
             let finalResult = null;
-
             for (let modelName of MODEL_LIST) {
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
-                    const response = await fetch(url, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    
+                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                     const data = await response.json();
-                    if (data.candidates && data.candidates.length > 0) {
-                        finalResult = data.candidates[0].content.parts[0].text;
-                        document.getElementById('modelStatus').innerText = `✅ ${modelName}`;
-                        break; 
-                    }
+                    if (data.candidates && data.candidates.length > 0) { finalResult = data.candidates[0].content.parts[0].text; document.getElementById('modelStatus').innerText = `✅ ${modelName}`; break; }
                 } catch (e) { console.error(e); }
             }
-
             document.getElementById('aiLoading').style.display = 'none';
-            if (!finalResult) { alert(`Tất cả model đều thất bại. Kiểm tra lại API Key hoặc Quota.`); return null; }
+            if (!finalResult) { alert(`Tất cả model đều thất bại. Kiểm tra lại Key hoặc Quota.`); return null; }
             return finalResult;
         }
-
-        // --- AI TÍNH CALO ---
         async function askAI() {
             const q = document.getElementById('aiInput').value;
             if(!q) return;
             const prompt = `Đóng vai chuyên gia dinh dưỡng. Người dùng hỏi: "${q}". Bệnh lý: ${healthProfile.conditions}. Trả về JSON (không markdown): {"name": "Tên món", "calories": số_nguyên, "portion": "khẩu phần", "status": "green/yellow/red", "reason": "lý do"}`;
             const aiRes = await callGemini(prompt);
-            if(aiRes) {
-                try {
-                    const d = JSON.parse(aiRes.replace(/```json|```/g, '').trim());
-                    const c = d.status === 'green' ? 'success' : (d.status === 'yellow' ? 'warning' : 'danger');
-                    document.getElementById('aiResult').innerHTML = `<div class="alert alert-${c}"><strong>${d.name}</strong> <span class="badge bg-dark">${d.calories} kcal</span><br><small>${d.portion} - ${d.reason}</small><button class="btn btn-sm btn-outline-dark w-100 mt-2" onclick="addTempCal(${d.calories})">+ Cộng Calo</button></div>`;
-                } catch (e) { document.getElementById('aiResult').innerHTML = `<div class="alert alert-secondary small">${aiRes}</div>`; }
-            }
+            if(aiRes) { try { const d = JSON.parse(aiRes.replace(/```json|```/g, '').trim()); const color = d.status === 'green' ? 'success' : (d.status === 'yellow' ? 'warning' : 'danger'); document.getElementById('aiResult').innerHTML = `<div class="alert alert-${color}"><strong>${d.name}</strong> <span class="badge bg-dark">${d.calories} kcal</span><br><small>${d.portion} - ${d.reason}</small><button class="btn btn-sm btn-outline-dark w-100 mt-2" onclick="addTempCal(${d.calories})">+ Cộng Calo</button></div>`; } catch (e) { document.getElementById('aiResult').innerHTML = `<div class="alert alert-secondary small">${aiRes}</div>`; } }
         }
 
-        // --- BIỂU ĐỒ SỰ KIỆN (LOGIC CŨ ĐÃ KHÔI PHỤC) ---
+        // --- BIỂU ĐỒ CÂN NẶNG (ĐÃ UPDATE SCALE & GRADIENT) ---
+        function renderWeightChart(logs, target) {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientFill.addColorStop(0, 'rgba(52, 152, 219, 0.4)');
+            gradientFill.addColorStop(1, 'rgba(52, 152, 219, 0.0)');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: logs.map(l => l.date),
+                    datasets: [
+                        { label: 'Cân nặng (Kg)', data: logs.map(l => l.value), borderColor: '#3498db', backgroundColor: gradientFill, tension: 0.4, fill: true, pointRadius: 5, pointBorderWidth: 2 },
+                        { label: 'Mục tiêu', data: Array(logs.length).fill(target), borderColor: '#2ecc71', borderDash: [10, 5], pointRadius: 0, borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { suggestedMin: 55, suggestedMax: 85, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } }, plugins: { legend: { display: true, position: 'bottom' } } }
+            });
+        }
+
+        // --- BIỂU ĐỒ GOUT (SỰ KIỆN) ---
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
-            
-            // Logic tô màu và hình dáng điểm
-            const pColors = logs.map(l => {
-                const n = (l.note||'').toLowerCase();
-                if(n.includes('cấp') || n.includes('cao')) return '#c0392b'; // Đỏ đậm
-                if(n.includes('tốt') || n.includes('hồi phục')) return '#27ae60'; // Xanh
-                return '#f1c40f'; // Vàng
-            });
-            const pStyles = logs.map(l => {
-                const n = (l.note||'').toLowerCase();
-                if(n.includes('tốt') || n.includes('hồi phục')) return 'star';
-                if(n.includes('cấp') || n.includes('cao')) return 'rectRot'; // Hình thoi
-                return 'circle';
-            });
-            const pSizes = logs.map(l => (l.note && l.note.length > 5) ? 10 : 4); // Điểm có sự kiện thì to ra
-
+            const pColors = logs.map(l => { const n=(l.note||'').toLowerCase(); return (n.includes('cấp')||n.includes('cao'))?'#c0392b':(n.includes('tốt')||n.includes('hồi phục')?'#27ae60':'#f1c40f'); });
+            const pStyles = logs.map(l => { const n=(l.note||'').toLowerCase(); return (n.includes('tốt')||n.includes('hồi phục'))?'star':((n.includes('cấp')||n.includes('cao'))?'rectRot':'circle'); });
+            const pSizes = logs.map(l => (l.note && l.note.length > 5) ? 10 : 4);
             new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -331,86 +314,44 @@
                         { label: 'Ngưỡng Gout', data: Array(logs.length).fill(420), borderColor: 'rgba(231,76,60,0.3)', borderDash:[5,5], pointRadius:0, yAxisID:'y' }
                     ]
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        tooltip: { callbacks: { footer: (items) => { const n = logs[items[0].dataIndex].note; return n ? '📌 ' + n : ''; } } },
-                        legend: { display: false } // Dùng custom legend
-                    },
-                    scales: { y: {position:'left', title:{display:true,text:'Uric'}, suggestedMin:200, suggestedMax:700}, y1: {position:'right', grid:{drawOnChartArea:false}, suggestedMin:0, suggestedMax:150} } 
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { footer: (items) => { const n = logs[items[0].dataIndex].note; return n ? '📌 ' + n : ''; } } }, legend: { display: false } }, scales: { y: {position:'left', title:{display:true,text:'Uric'}, suggestedMin:200, suggestedMax:700}, y1: {position:'right', grid:{drawOnChartArea:false}, suggestedMin:0, suggestedMax:150} } }
             });
         }
 
-        // --- BẢNG SO SÁNH FULL (LOGIC CŨ ĐÃ KHÔI PHỤC) ---
-        // --- BẢNG SO SÁNH (CÓ GIẢI THÍCH Ý NGHĨA) ---
+        // --- BẢNG SO SÁNH (CÓ GIẢI THÍCH) ---
         function renderCompareTable(logs) {
-            const thead = document.querySelector('#compareTable thead');
-            const tbody = document.querySelector('#compareTable tbody');
-            
-            // Header: Giữ nguyên
-            let hHTML = `<tr><th class="text-start bg-light" style="width: 250px;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`;
-            logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`);
-            thead.innerHTML = hHTML + '</tr>';
-            
-            // Danh sách chỉ số KÈM GIẢI THÍCH (d: description)
+            const thead = document.querySelector('#compareTable thead'); const tbody = document.querySelector('#compareTable tbody');
+            let hHTML = `<tr><th class="text-start bg-light" style="width: 250px;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`; logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`); thead.innerHTML = hHTML + '</tr>';
             const metrics = [
-                {group:true, name:'GOUT & THẬN'},
-                {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout. Cao gây lắng đọng tinh thể ở khớp.'}, 
-                {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Đánh giá chức năng lọc của Thận. Cao là thận yếu.'}, 
-                {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. < 60 là suy thận.'},
-                
-                {group:true, name:'GAN (Men gan)'},
-                {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng cao khi tế bào gan bị hủy hoại.'}, 
-                {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan. Tăng do tổn thương gan, tim hoặc cơ.'}, 
-                {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Men gan. Rất nhạy cảm với rượu bia và tắc mật.'},
-
-                {group:true, name:'MỠ MÁU & ĐƯỜNG'},
-                {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần. Cao gây xơ vữa động mạch.'}, 
-                {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính. Tăng do ăn nhiều ngọt/tinh bột.'}, 
-                {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Giúp dọn dẹp mạch máu (Càng cao càng tốt).'},
-                {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói. Đánh giá nguy cơ tiểu đường.'},
-
-                {group:true, name:'CÔNG THỨC MÁU'},
-                {n:'WBC (Bạch cầu)', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Tế bào miễn dịch. Tăng khi cơ thể bị viêm/nhiễm trùng.'}, 
-                {n:'RBC (Hồng cầu)', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Tế bào vận chuyển oxy. Thấp là thiếu máu.'}, 
-                {n:'HGB (Huyết sắc tố)', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Lượng huyết sắc tố. Phản ánh tình trạng thiếu máu.'},
-                {n:'PLT (Tiểu cầu)', k:'plt', u:'K/µL', min:150, max:350, d:'Tế bào đông máu. Thấp dễ chảy máu, cao dễ đông máu.'}
+                {group:true, name:'GOUT & THẬN'}, {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Gây Gout. Lắng đọng tinh thể.'}, {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Lọc thận. Cao là thận yếu.'}, {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. <60 là suy.'},
+                {group:true, name:'GAN'}, {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan tăng khi tế bào hủy.'}, {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Tổn thương gan/tim/cơ.'}, {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Nhạy cảm với rượu bia.'},
+                {group:true, name:'MỠ MÁU'}, {n:'Cholest.', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ tổng. Cao gây xơ vữa.'}, {n:'Trigly.', k:'triglyceride', u:'mmol/L', max:1.88, d:'Mỡ do ăn ngọt/béo.'}, {n:'HDL', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt.'},
+                {group:true, name:'MÁU'}, {n:'WBC', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Bạch cầu (Viêm nhiễm).'}, {n:'RBC', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Hồng cầu (Thiếu máu).'}, {n:'HGB', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Huyết sắc tố.'}, {n:'PLT', k:'plt', u:'K/µL', min:150, max:350, d:'Tiểu cầu (Đông máu).'}
             ];
-            
-            tbody.innerHTML = '';
-            metrics.forEach(m => {
-                if(m.group) {
-                    // Dòng tiêu đề nhóm
-                    tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-start ps-3 text-uppercase small">${m.name}</td></tr>`;
-                } else {
-                    // Dòng dữ liệu
+            tbody.innerHTML = ''; metrics.forEach(m => {
+                if(m.group) tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-start ps-3 text-uppercase small">${m.name}</td></tr>`;
+                else {
                     let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
-                    
-                    // Cột Tên + Giải thích
-                    let row = `<tr>
-                        <td class="text-start ps-3">
-                            <div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.8em">(${m.u})</span></div>
-                            <div class="text-muted fst-italic" style="font-size: 0.75rem;">${m.d}</div>
-                        </td>
-                        <td class="text-muted small align-middle"><em>${range}</em></td>`;
-                    
-                    // Các cột giá trị theo ngày
-                    logs.forEach(l => {
-                        let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
-                        let cls = 'align-middle';
-                        if(typeof v === 'number') {
-                            if(m.max && v > m.max) cls += ' text-danger fw-bold'; // Cao hơn ngưỡng
-                            if(m.min && v < m.min) cls += ' text-danger fw-bold'; // Thấp hơn ngưỡng
-                        }
-                        row += `<td class="${cls}">${v}</td>`;
-                    });
+                    let row = `<tr><td class="text-start ps-3"><div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.8em">(${m.u})</span></div><div class="text-muted fst-italic" style="font-size: 0.75rem;">${m.d}</div></td><td class="text-muted small align-middle"><em>${range}</em></td>`;
+                    logs.forEach(l => { let v = l[m.k] || '-'; let cls = 'align-middle'; if(typeof v === 'number' && ((m.max && v>m.max) || (m.min && v<m.min))) cls += ' text-danger fw-bold'; row += `<td class="${cls}">${v}</td>`; });
                     tbody.innerHTML += row + '</tr>';
                 }
             });
         }
-        // --- CÁC HÀM PHỤ TRỢ ---
-        function renderWeightChart(logs, target) { new Chart(document.getElementById('weightChart'), {type:'line', data:{labels:logs.map(l=>l.date), datasets:[{label:'Kg', data:logs.map(l=>l.value), borderColor:'#3498db', tension:0.3}, {label:'Mục tiêu', data:Array(logs.length).fill(target), borderColor:'#2ecc71', borderDash:[5,5]}]}}); }
+
+        // --- WATER LOGIC (THANH TIẾN ĐỘ) ---
+        function loadWater() { const t=new Date().toLocaleDateString('vi-VN'); if(localStorage.getItem('wDate')!=t){localStorage.setItem('wDate',t);localStorage.setItem('wCount',0);} updateWaterUI(parseInt(localStorage.getItem('wCount'))||0); }
+        function addWater() { let c=(parseInt(localStorage.getItem('wCount'))||0)+1; localStorage.setItem('wCount',c); updateWaterUI(c); }
+        function resetWater() { if(confirm('Reset?')){localStorage.setItem('wCount',0); updateWaterUI(0);} }
+        function updateWaterUI(c) {
+            document.getElementById('waterCount').innerText = c;
+            const percent = Math.min((c * CUP_SIZE / dailyTarget) * 100, 100);
+            const bar = document.getElementById('waterProgress');
+            if(bar) { bar.style.width = percent + '%'; if(percent>=100){bar.classList.remove('bg-primary');bar.classList.add('bg-success');}else{bar.classList.add('bg-primary');bar.classList.remove('bg-success');} }
+            document.getElementById('waterPercentText').innerText = Math.round(percent) + '%';
+        }
+
+        // --- HELPERS ---
         function renderMeals(logs) { document.getElementById('mealTable').innerHTML = logs.slice().reverse().slice(0,5).map(l=>`<tr><td>${l.date}</td><td>${l.content}</td><td><span class="badge bg-secondary">${l.calories||'-'}</span></td><td>${l.evaluation}</td></tr>`).join(''); }
         function renderLifestyle(t) { document.getElementById('lifestyleTips').innerHTML = `<div class="col-3">🌅 ${t.morning}</div><div class="col-3">🍱 ${t.eating}</div><div class="col-3">🌙 ${t.evening}</div><div class="col-3">🏃 ${t.exercise}</div>`; }
         function loadDailyCalories() { const t=new Date().toLocaleDateString(); if(localStorage.getItem('cDate')!=t){localStorage.setItem('cDate',t);localStorage.setItem('dCal',0);} updateCalUI(parseInt(localStorage.getItem('dCal'))); }
@@ -418,10 +359,6 @@
         function resetDailyCal() { localStorage.setItem('dCal',0); updateCalUI(0); }
         function updateCalUI(v) { document.getElementById('dailyCal').innerText=v; document.getElementById('calProgress').style.width=Math.min((v/healthProfile.targetCal)*100,100)+'%'; }
         function calculateTarget(l) { dailyTarget = (l.uric_acid>400||l.alt_liver>40)?3.0:2.5; document.getElementById('waterTargetDisplay').innerText=dailyTarget; }
-        function loadWater() { const t=new Date().toLocaleDateString(); if(localStorage.getItem('wDate')!=t){localStorage.setItem('wDate',t);localStorage.setItem('wCount',0);} document.getElementById('waterCount').innerText=localStorage.getItem('wCount'); }
-        function addWater() { let c=parseInt(localStorage.getItem('wCount'))+1; localStorage.setItem('wCount',c); document.getElementById('waterCount').innerText=c; }
-        function resetWater() { if(confirm('Reset?')){localStorage.setItem('wCount',0); document.getElementById('waterCount').innerText=0;} }
-        
         function genCheckupJSON() { const o={date:document.getElementById('inpDate').value, uric_acid:parseFloat(document.getElementById('inpUric').value), alt_liver:parseFloat(document.getElementById('inpAlt').value), ast_liver:parseFloat(document.getElementById('inpAst').value), ggt_liver:parseFloat(document.getElementById('inpGgt').value), creatinine:parseFloat(document.getElementById('inpCre').value), egfr:parseFloat(document.getElementById('inpEgfr').value), cholesterol:parseFloat(document.getElementById('inpChol').value), triglyceride:parseFloat(document.getElementById('inpTri').value), hdl:parseFloat(document.getElementById('inpHdl').value), glucose:parseFloat(document.getElementById('inpGlu').value), hgb:parseFloat(document.getElementById('inpHgb').value), rbc:parseFloat(document.getElementById('inpRbc').value), wbc:parseFloat(document.getElementById('inpWbc').value), plt:parseFloat(document.getElementById('inpPlt').value), note:document.getElementById('inpNote').value}; showJSON(o); }
         function genWeightJSON() { showJSON({date:document.getElementById('inpWDate').value, value:parseFloat(document.getElementById('inpWeight').value)}); }
         function genMealJSON() { showJSON({date:document.getElementById('inpMDate').value, content:document.getElementById('inpMContent').value, calories:parseFloat(document.getElementById('inpMCal').value), evaluation:document.getElementById('inpMEval').value}); }

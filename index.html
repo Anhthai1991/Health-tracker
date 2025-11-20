@@ -252,7 +252,7 @@
 
         // --- GỌI GEMINI (Hàm lõi) ---
         // 3. GỌI GEMINI API (Đã vá lỗi & Bắt lỗi chi tiết)
-        // 3. GỌI GEMINI API (Đã sửa Model ID)
+        // 3. GỌI GEMINI API (Sử dụng bản gemini-pro ổn định nhất)
         async function callGemini(prompt) {
             const key = localStorage.getItem('geminiKey');
             
@@ -266,8 +266,8 @@
             document.getElementById('aiLoading').style.display = 'block';
             
             try {
-                // SỬA LỖI Ở ĐÂY: Đổi tên model thành 'gemini-1.5-flash-latest'
-                const modelName = 'gemini-pro'; // Thay đổi model nếu cần
+                // --- SỬA ĐỔI QUAN TRỌNG: Dùng 'gemini-pro' ---
+                const modelName = 'gemini-pro'; 
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
 
                 const response = await fetch(url, {
@@ -281,20 +281,15 @@
                 const data = await response.json();
                 document.getElementById('aiLoading').style.display = 'none';
 
-                // Bắt lỗi chi tiết từ Google
+                // Bắt lỗi chi tiết
                 if (data.error) {
                     console.error("API Error:", data.error);
-                    // Nếu vẫn lỗi model not found, gợi ý dùng gemini-pro
-                    if(data.error.message.includes('not found')) {
-                        alert('Lỗi phiên bản Model. Hãy thử đổi modelName trong code thành "gemini-pro".');
-                    } else {
-                        alert('Lỗi từ Google: ' + data.error.message);
-                    }
+                    alert('Lỗi Google API: ' + data.error.message);
                     return null;
                 }
 
                 if (!data.candidates || data.candidates.length === 0) {
-                    alert('AI không phản hồi. Hãy thử lại.');
+                    alert('AI không phản hồi. Có thể do nội dung bị chặn bởi bộ lọc an toàn.');
                     return null;
                 }
 
@@ -303,7 +298,7 @@
             } catch (error) {
                 document.getElementById('aiLoading').style.display = 'none';
                 console.error("Network Error:", error);
-                alert('Lỗi kết nối: ' + error.message);
+                alert('Lỗi kết nối mạng: ' + error.message);
                 return null;
             }
         }

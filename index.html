@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thai Health Super-App</title>
+    <title>Thai Health Ultimate</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,7 +38,7 @@
 
     <div class="header-gradient text-center no-print">
         <div class="container">
-            <h1 class="fw-bold">Nguyễn Anh Thái <span class="ai-badge">AI Powered</span></h1>
+            <h1 class="fw-bold">Nguyễn Anh Thái <span class="ai-badge">Ultimate</span></h1>
             <p class="opacity-75">Gout • Men Gan • Thận (eGFR) • Trào ngược</p>
             <button class="btn btn-sm btn-outline-light mt-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#keyModal">
                 <i class="bi bi-key-fill"></i> Cài đặt Gemini API
@@ -101,9 +101,23 @@
         </div>
 
         <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-3">
+                    <h5 class="card-title text-primary"><i class="bi bi-table"></i> Bảng Theo Dõi Chỉ Số Chi Tiết</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center small" id="compareTable">
+                            <thead class="table-light"></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
             <div class="col-md-7">
                 <div class="card p-3 h-100">
-                    <h5 class="card-title">📊 Diễn biến Gout & Gan (Có sự kiện)</h5>
+                    <h5 class="card-title">📊 Diễn biến Gout & Gan</h5>
                     <canvas id="labChart"></canvas>
                 </div>
             </div>
@@ -169,13 +183,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="small text-muted">Nhập API Key để kích hoạt AI. Hệ thống sẽ tự động tìm model miễn phí tốt nhất.</p>
+                    <p class="small text-muted">Nhập API Key. Hệ thống sẽ TỰ ĐỘNG CHỌN model miễn phí tốt nhất (gemini-1.5-flash).</p>
                     <input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="Paste API Key vào đây...">
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="showKey">
                         <label class="form-check-label small" for="showKey">Hiện Key</label>
                     </div>
-                    <button class="btn btn-primary w-100" onclick="saveKeyAndDetect()">Lưu & Dò tìm Model</button>
+                    <button class="btn btn-primary w-100" onclick="saveKeyAndDetect()">Lưu & Fix Lỗi Model</button>
                     <hr>
                     <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small">👉 Lấy API Key miễn phí</a>
                 </div>
@@ -204,8 +218,10 @@
                                 <div class="col-6 mb-2"><label>Men gan (ALT):</label><input type="number" id="inpAlt" class="form-control" placeholder="U/L"></div>
                                 <div class="col-6 mb-2"><label>Creatinine:</label><input type="number" id="inpCre" class="form-control" placeholder="µmol/L"></div>
                                 <div class="col-6 mb-2"><label>eGFR:</label><input type="number" id="inpEgfr" class="form-control" placeholder="ml/min"></div>
+                                <div class="col-6 mb-2"><label>Cholesterol:</label><input type="number" id="inpChol" class="form-control" placeholder="mmol/L"></div>
+                                <div class="col-6 mb-2"><label>Triglyceride:</label><input type="number" id="inpTri" class="form-control" placeholder="mmol/L"></div>
                             </div>
-                            <div class="mb-2"><label>Ghi chú (quan trọng):</label><input type="text" id="inpNote" class="form-control" placeholder="VD: Gout cấp tính, Hồi phục tốt..."></div>
+                            <div class="mb-2"><label>Ghi chú:</label><input type="text" id="inpNote" class="form-control" placeholder="VD: Gout cấp tính, Hồi phục tốt..."></div>
                             <button class="btn btn-primary w-100 mt-2" onclick="genCheckupJSON()">Tạo Code JSON</button>
                         </div>
                         <div class="tab-pane fade" id="tabWeight">
@@ -245,6 +261,7 @@
             
             renderLabChart(data.medical_checkups);
             renderWeightChart(data.weight_log, data.profile.target_weight);
+            renderCompareTable(data.medical_checkups);
             renderMeals(data.meal_logs);
             renderLifestyle(data.lifestyle_tips);
             
@@ -254,7 +271,15 @@
 
             // Check Key & Model
             const key = localStorage.getItem('geminiKey');
-            const savedModel = localStorage.getItem('geminiModel');
+            let savedModel = localStorage.getItem('geminiModel');
+            
+            // FIX LỖI MODEL: Nếu model đang lưu là bản preview/exp, xóa ngay lập tức
+            if (savedModel && (savedModel.includes('preview') || savedModel.includes('exp') || savedModel.includes('2.5'))) {
+                console.log("Phát hiện model lỗi quota, đang reset...");
+                localStorage.removeItem('geminiModel');
+                savedModel = null;
+            }
+
             if(key) {
                 document.getElementById('apiKeyInput').value = key;
                 if(savedModel) document.getElementById('modelStatus').innerText = `✅ Connected: ${savedModel}`;
@@ -265,7 +290,7 @@
             }
         });
 
-        // --- AI LOGIC (FIXED QUOTA & MODEL) ---
+        // --- AI LOGIC (FIXED: ƯU TIÊN FLASH 1.5) ---
         async function detectModel(key) {
             const statusDiv = document.getElementById('modelStatus');
             statusDiv.innerText = "⏳ Đang tìm model miễn phí...";
@@ -274,25 +299,42 @@
                 const data = await response.json();
                 if(data.error) { alert('Key lỗi: ' + data.error.message); return; }
 
-                // Ưu tiên Flash (Miễn phí quota cao)
-                const priority = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro", "gemini-pro"];
+                // DANH SÁCH ƯU TIÊN TUYỆT ĐỐI
+                const priority = [
+                    "gemini-1.5-flash",          // Ngon nhất, free nhiều nhất
+                    "gemini-1.5-flash-latest", 
+                    "gemini-1.5-pro", 
+                    "gemini-pro"
+                ];
+                
                 let selected = null;
                 for (let p of priority) {
+                    // Tìm chính xác đuôi model
                     const f = data.models.find(m => m.name.endsWith(p));
-                    if (f) { selected = f.name.replace("models/", ""); break; }
+                    if (f) { 
+                        selected = f.name.replace("models/", ""); 
+                        break; 
+                    }
                 }
-                if (!selected) { // Fallback tránh bản exp
-                    const fb = data.models.find(m => m.supportedGenerationMethods.includes("generateContent") && !m.name.includes("exp"));
+
+                // Nếu không thấy trong list ưu tiên, tìm fallback nhưng TRÁNH XA bản exp/preview
+                if (!selected) { 
+                    const fb = data.models.find(m => 
+                        m.supportedGenerationMethods.includes("generateContent") && 
+                        !m.name.includes("exp") && 
+                        !m.name.includes("preview")
+                    );
                     if(fb) selected = fb.name.replace("models/", "");
                 }
 
                 if (selected) {
                     localStorage.setItem('geminiModel', selected);
                     statusDiv.innerText = `✅ Đã chọn: ${selected}`;
-                    alert(`Đã chuyển sang model: ${selected}`);
+                    alert(`Đã fix lỗi Quota! Đang dùng model: ${selected}`);
                 } else {
+                    // Bước đường cùng: Hardcode luôn
                     localStorage.setItem('geminiModel', 'gemini-1.5-flash');
-                    statusDiv.innerText = "⚠️ Mặc định: gemini-1.5-flash";
+                    statusDiv.innerText = "⚠️ Force: gemini-1.5-flash";
                 }
             } catch (e) { console.error(e); statusDiv.innerText = "❌ Lỗi mạng"; }
         }
@@ -300,6 +342,13 @@
         async function callGemini(prompt) {
             const key = localStorage.getItem('geminiKey');
             let modelName = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+            
+            // Chặn ngay nếu model là bản preview (tránh lỗi 429)
+            if (modelName.includes('preview') || modelName.includes('2.5')) {
+                modelName = 'gemini-1.5-flash';
+                localStorage.setItem('geminiModel', modelName);
+            }
+
             if(!key) { alert('Chưa có Key!'); return null; }
 
             document.getElementById('aiLoading').style.display = 'block';
@@ -313,10 +362,11 @@
                 document.getElementById('aiLoading').style.display = 'none';
 
                 if (data.error) {
-                    if(data.error.message.includes('not found') || data.error.message.includes('quota')) {
-                        alert('Model cũ bị lỗi/hết quota, đang tự đổi model khác...');
-                        await detectModel(key);
-                        return null;
+                    // Nếu lỗi Quota hoặc Not Found -> Reset ngay lập tức
+                    if(data.error.message.includes('quota') || data.error.message.includes('not found')) {
+                        alert('Model hiện tại bị lỗi Quota. Đang tự động chuyển về bản Flash miễn phí...');
+                        localStorage.setItem('geminiModel', 'gemini-1.5-flash'); // Force reset
+                        return await callGemini(prompt); // Thử lại ngay
                     }
                     alert('Lỗi Google: ' + data.error.message); return null;
                 }
@@ -371,7 +421,58 @@
             if(res) { document.getElementById('menuResult').style.display='block'; document.getElementById('menuContent').innerHTML = marked.parse(res); }
         }
 
-        // --- CHART & LOGIC CŨ ---
+        // --- RENDER BẢNG SO SÁNH (PIVOT TABLE) ---
+        function renderCompareTable(logs) {
+            const table = document.getElementById('compareTable');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            
+            let headerHTML = `<tr><th class="text-start" style="min-width: 150px;">Chỉ số</th><th style="width: 100px;">Ngưỡng</th>`;
+            logs.forEach(log => { headerHTML += `<th>${log.date}</th>`; });
+            headerHTML += `</tr>`;
+            thead.innerHTML = headerHTML;
+
+            const metrics = [
+                { group: true, name: 'GOUT & THẬN' },
+                { name: 'Acid Uric', key: 'uric_acid', unit: 'µmol/L', range: '180-420' },
+                { name: 'Creatinine', key: 'creatinine', unit: 'µmol/L', range: '62-120' },
+                { name: 'eGFR (Thận)', key: 'egfr', unit: 'mL/min', range: '> 90' },
+                { group: true, name: 'GAN (Men gan)' },
+                { name: 'ALT (GPT)', key: 'alt_liver', unit: 'U/L', range: '< 40' },
+                { name: 'AST (GOT)', key: 'ast_liver', unit: 'U/L', range: '< 37' },
+                { name: 'GGT', key: 'ggt_liver', unit: 'U/L', range: '11-50' },
+                { group: true, name: 'MỠ MÁU & ĐƯỜNG' },
+                { name: 'Cholesterol', key: 'cholesterol', unit: 'mmol/L', range: '3.9-5.2' },
+                { name: 'Triglyceride', key: 'triglyceride', unit: 'mmol/L', range: '0.46-1.88' },
+                { name: 'Glucose', key: 'glucose', unit: 'mmol/L', range: '3.9-6.4' },
+                { group: true, name: 'CÔNG THỨC MÁU' },
+                { name: 'Hồng cầu (RBC)', key: 'rbc', unit: 'M/µL', range: '3.7-5.2' },
+                { name: 'Huyết sắc tố', key: 'hgb', unit: 'g/dL', range: '9-16.5' }
+            ];
+
+            tbody.innerHTML = '';
+            metrics.forEach(m => {
+                if (m.group) {
+                    tbody.innerHTML += `<tr class="table-secondary"><td colspan="${logs.length + 2}" class="fw-bold text-start">${m.name}</td></tr>`;
+                } else {
+                    let rowHTML = `<tr><td class="text-start fw-bold">${m.name} <span class="text-muted small">(${m.unit})</span></td><td class="text-muted small"><em>${m.range}</em></td>`;
+                    logs.forEach(log => {
+                        let val = log[m.key];
+                        let displayVal = (val !== undefined && val !== null) ? val : '-';
+                        let colorClass = '';
+                        // Tô màu cảnh báo đơn giản
+                        if (m.key === 'uric_acid' && val > 420) colorClass = 'text-danger fw-bold';
+                        else if ((m.key === 'alt_liver' || m.key === 'ast_liver') && val > 40) colorClass = 'text-danger fw-bold';
+                        else if (m.key === 'uric_acid' && val <= 420 && val > 0) colorClass = 'text-success fw-bold';
+                        rowHTML += `<td class="${colorClass}">${displayVal}</td>`;
+                    });
+                    rowHTML += `</tr>`;
+                    tbody.innerHTML += rowHTML;
+                }
+            });
+        }
+
+        // --- CHART ---
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
             const pColors = logs.map(l => (l.note||'').includes('cấp') ? '#e74c3c' : ((l.note||'').includes('tốt')||(l.note||'').includes('hồi phục') ? '#27ae60' : '#f1c40f'));
@@ -409,7 +510,7 @@
             });
         }
 
-        // --- ADMIN TOOL ---
+        // --- ADMIN TOOL HELPERS ---
         function genCheckupJSON() {
             const obj = {
                 date: document.getElementById('inpDate').value,
@@ -417,6 +518,8 @@
                 alt_liver: parseFloat(document.getElementById('inpAlt').value),
                 creatinine: parseFloat(document.getElementById('inpCre').value)||null,
                 egfr: parseFloat(document.getElementById('inpEgfr').value)||null,
+                cholesterol: parseFloat(document.getElementById('inpChol').value)||null,
+                triglyceride: parseFloat(document.getElementById('inpTri').value)||null,
                 note: document.getElementById('inpNote').value
             };
             showJSON(obj);
@@ -467,7 +570,6 @@
             if(p>=100) { b.classList.remove('bg-info'); b.classList.add('bg-success'); }
         }
 
-        // Key Show/Hide
         document.getElementById('showKey').addEventListener('change', function() { document.getElementById('apiKeyInput').type = this.checked ? 'text' : 'password'; });
     </script>
 </body>

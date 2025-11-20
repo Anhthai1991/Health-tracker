@@ -1,3 +1,8 @@
+---
+layout: default
+title: Kế Hoạch Tập Luyện
+---
+
 # 🏋️ Kế Hoạch Tập Luyện: Sức Khỏe & Sinh Sản (Target 2025)
 
 **Mục tiêu:** Cơ thể săn chắc (Abs), kiểm soát Acid Uric, tăng cường chất lượng tinh trùng.

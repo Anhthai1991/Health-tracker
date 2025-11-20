@@ -1,3 +1,8 @@
+---
+layout: default
+title: Phân Tích Sức Khỏe 2024
+---
+
 # HEALTH DATA ANALYSIS REPORT 2024
 
 **Họ tên:** Nguyễn Anh Thái

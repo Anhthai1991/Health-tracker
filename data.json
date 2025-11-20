@@ -55,5 +55,16 @@
     "evening": "Kết thúc bữa ăn trước 19h30. Kê cao đầu giường 15-20cm khi ngủ (chống Trào ngược).",
     "exercise": "Đi bộ 30p/ngày. Tránh vận động mạnh ngay sau ăn."
   },
-  "meal_logs": []
+  "meal_logs": [
+    {
+      "date": "2025-11-19",
+      "content": "Sáng: Nhịn . Trưa: Cơm + ba rọi nướng + Rau má. Tối: Cháo lòng tự nấu.",
+      "evaluation": "Tốt. Đã biết bỏ nước dùng béo và thịt đỏ."
+    },
+    {
+      "date": "2025-11-20",
+      "content": "Sáng: Cháo lòng. Trưa: bắp luộc Tối: Cơm với chả cá ba sa + ổi.",
+      "evaluation": "Khá. Cháo lòng nhiều không tốt."
+    }
+  ]
 }

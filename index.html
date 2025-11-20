@@ -15,20 +15,62 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
-        body { background-color: #f4f6f8; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        /* --- THEME VARIABLES --- */
+        :root {
+            --bg-body: #f4f6f8;
+            --bg-card: #ffffff;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --border-color: rgba(0,0,0,0.05);
+            --input-bg: #ffffff;
+            --input-border: #dee2e6;
+            --table-th-bg: #f8f9fa;
+            --modal-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border-color: rgba(255,255,255,0.1);
+            --input-bg: #2c2c2c;
+            --input-border: #444;
+            --table-th-bg: #2c2c2c;
+            --modal-bg: #1e1e1e;
+        }
+
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
         .main-content { flex: 1; }
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; background: white; }
+        
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; background: var(--bg-card); color: var(--text-main); transition: background-color 0.3s; }
+        [data-theme="dark"] .card { box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #333; }
+        
         .header-gradient { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 40px 0 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
-        .tool-btn { border-radius: 12px; padding: 12px; font-weight: 600; border: none; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 0.9rem; }
-        .water-section { background: white; border-radius: 16px; padding: 20px; text-align: center; }
-        .chart-legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.8rem; color: #555; }
+        
+        .tool-btn { border-radius: 12px; padding: 12px; font-weight: 600; border: none; width: 100%; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 0.9rem; background: var(--bg-card) !important; transition: 0.3s; }
+        [data-theme="dark"] .tool-btn { background: #2c2c2c !important; color: #e0e0e0 !important; box-shadow: none; border: 1px solid #444; }
+        
+        .form-control, .form-select { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-main); }
+        .form-control:focus { background-color: var(--input-bg); color: var(--text-main); }
+        [data-theme="dark"] .form-control::placeholder { color: #6c757d; }
+        
+        .table { color: var(--text-main); }
+        .table thead th { background-color: var(--table-th-bg) !important; color: var(--text-main); border-color: var(--border-color); }
+        .table td { border-color: var(--border-color); }
+        
+        .modal-content { background-color: var(--modal-bg); color: var(--text-main); }
+        .btn-close { filter: var(--btn-close-filter); }
+        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+
+        .chart-legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
         
         @media print {
-            .no-print, .header-gradient, footer, .tool-btn, .search-section, .water-section { display: none !important; }
-            .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+            .no-print, .header-gradient, footer, .tool-btn, .search-section { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; background: white !important; color: black !important; }
             .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
-            body { background: white; }
+            body { background: white !important; color: black !important; }
         }
         .print-header { display: none; }
     </style>
@@ -36,7 +78,11 @@
 <body>
 
     <div class="header-gradient text-center no-print">
-        <div class="container">
+        <div class="container position-relative">
+            <button class="btn btn-sm btn-outline-light rounded-circle position-absolute top-0 end-0 mt-0" onclick="toggleTheme()" id="themeBtn">
+                <i class="bi bi-moon-fill"></i>
+            </button>
+
             <h2 class="fw-bold" id="headerName">Nguyễn Anh Thái</h2>
             <p class="opacity-75 small">Dashboard Theo Dõi Sức Khỏe</p>
             <button class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#keyModal">
@@ -85,10 +131,10 @@
         </div>
 
         <div class="row mb-3 no-print">
-            <div class="col-6 col-md-3"><button class="tool-btn bg-white text-primary" onclick="window.print()"><span>In Báo Cáo</span><i class="bi bi-printer"></i></button></div>
-            <div class="col-6 col-md-3"><button class="tool-btn bg-white text-success" data-bs-toggle="modal" data-bs-target="#adminModal"><span>Nhập Liệu</span><i class="bi bi-pencil-square"></i></button></div>
-            <div class="col-6 col-md-3"><button class="tool-btn bg-white text-danger" onclick="generateAIMenu()"><span>Thực Đơn AI</span><i class="bi bi-egg-fried"></i></button></div>
-            <div class="col-6 col-md-3"><button class="tool-btn bg-white text-warning" onclick="checkHealthAI()"><span>Phân Tích</span><i class="bi bi-activity"></i></button></div>
+            <div class="col-6 col-md-3"><button class="tool-btn text-primary" onclick="window.print()"><span>In Báo Cáo</span><i class="bi bi-printer"></i></button></div>
+            <div class="col-6 col-md-3"><button class="tool-btn text-success" data-bs-toggle="modal" data-bs-target="#adminModal"><span>Nhập Liệu</span><i class="bi bi-pencil-square"></i></button></div>
+            <div class="col-6 col-md-3"><button class="tool-btn text-danger" onclick="generateAIMenu()"><span>Thực Đơn AI</span><i class="bi bi-egg-fried"></i></button></div>
+            <div class="col-6 col-md-3"><button class="tool-btn text-warning" onclick="checkHealthAI()"><span>Phân Tích</span><i class="bi bi-activity"></i></button></div>
         </div>
 
         <div class="row mb-4 search-section">
@@ -105,7 +151,7 @@
             </div>
         </div>
 
-        <div id="menuResult" class="card p-3 mb-4 bg-white border-warning" style="display:none;">
+        <div id="menuResult" class="card p-3 mb-4 border-warning" style="display:none;">
             <h6 class="text-warning">💡 AI Tư Vấn:</h6>
             <div id="menuContent" class="small"></div>
         </div>
@@ -121,7 +167,7 @@
                     <div class="progress mt-2 mb-3" style="height: 8px;"><div id="calProgress" class="progress-bar bg-danger" style="width: 0%"></div></div>
                     
                     <div class="input-group input-group-sm mt-auto">
-                        <span class="input-group-text bg-light">Nạp nhanh</span>
+                        <span class="input-group-text bg-secondary text-white">Nạp nhanh</span>
                         <input type="number" id="manualCalInput" class="form-control" placeholder="Nhập số calo...">
                         <button class="btn btn-outline-danger" onclick="addManualCal()">+</button>
                     </div>
@@ -216,8 +262,8 @@
         </div>
     </div>
 
-    <footer class="no-print bg-white py-3 text-center mt-auto border-top">
-        <small class="text-muted">© 2025 Thai Health Tracker</small>
+    <footer class="no-print py-3 text-center mt-auto border-top" style="background: var(--bg-card); color: var(--text-muted);">
+        <small>© 2025 Thai Health Tracker</small>
     </footer>
 
     <div class="modal fade" id="keyModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h6 class="modal-title">Cài đặt API</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="password" id="apiKeyInput" class="form-control mb-2" placeholder="Paste API Key..."><button class="btn btn-primary w-100" onclick="saveKey()">Lưu Key</button></div></div></div></div>
@@ -237,13 +283,53 @@
             <div class="tab-pane fade" id="tabWeight"><input type="date" id="inpWDate" class="form-control mb-2"><input type="number" id="inpWeight" class="form-control mb-2" placeholder="kg"><button class="btn btn-success w-100" onclick="genWeightJSON()">Tạo JSON</button></div>
             <div class="tab-pane fade" id="tabMeal"><input type="date" id="inpMDate" class="form-control mb-2"><textarea id="inpMContent" class="form-control mb-2" placeholder="Món..."></textarea><input type="number" id="inpMCal" class="form-control mb-2" placeholder="Calo"><textarea id="inpMEval" class="form-control mb-2" placeholder="Đánh giá..."></textarea><button class="btn btn-warning w-100" onclick="genMealJSON()">Tạo JSON</button></div>
         </div>
-        <textarea id="jsonOutput" class="form-control mt-3 bg-light small" rows="3" readonly></textarea>
+        <textarea id="jsonOutput" class="form-control mt-3 small" rows="3" readonly style="background: var(--input-bg); color: var(--text-main);"></textarea>
     </div></div></div></div>
 
     <script>
         let foodDB = [], healthProfile = {};
+        let labChartInstance = null, weightChartInstance = null; // Store chart instances
         const CUP_SIZE = 0.25; let dailyTarget = 2.5; 
         const MODEL_LIST = ["gemini-2.5-flash", "gemini-2.0-flash-001", "gemini-2.0-flash-lite-001"];
+
+        // --- THEME MANAGEMENT ---
+        function initTheme() {
+            const stored = localStorage.getItem('theme') || 'light';
+            setTheme(stored);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const btn = document.getElementById('themeBtn');
+            if(theme === 'dark') {
+                btn.innerHTML = '<i class="bi bi-sun-fill"></i>';
+                Chart.defaults.color = '#e0e0e0';
+                Chart.defaults.borderColor = '#444';
+            } else {
+                btn.innerHTML = '<i class="bi bi-moon-fill"></i>';
+                Chart.defaults.color = '#666';
+                Chart.defaults.borderColor = '#ddd';
+            }
+            // Re-render charts to apply new colors
+            if(healthProfile.lastCheckup) {
+                fetch('data.json').then(r=>r.json()).then(data => {
+                    // Need to re-sort same as initial load to keep consistency
+                    data.medical_checkups.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    data.weight_log.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    renderLabChart(data.medical_checkups);
+                    renderWeightChart(data.weight_log, data.profile.target_weight);
+                });
+            }
+        }
+
+        initTheme(); // Run immediately
 
         fetch('data.json').then(r => r.json()).then(data => {
             foodDB = data.food_database;
@@ -257,7 +343,7 @@
                 targetCal: data.profile.daily_calories_target || 1800
             };
             
-            // --- NEW: RENDER PERSONAL INFO ---
+            // Render Personal Info
             document.getElementById('headerName').innerText = data.profile.name;
             document.getElementById('pName').innerText = data.profile.name;
             const currentYear = new Date().getFullYear();
@@ -265,13 +351,10 @@
             document.getElementById('pAge').innerText = age;
             document.getElementById('pGender').innerText = data.profile.gender;
             document.getElementById('pHeight').innerText = data.profile.height;
-            
-            // Lấy cân nặng mới nhất
             const lastWeight = data.weight_log.length > 0 ? data.weight_log[data.weight_log.length - 1].value : "--";
             document.getElementById('pWeight').innerText = lastWeight;
             document.getElementById('pBlood').innerText = data.profile.blood_type;
             document.getElementById('pConditions').innerText = healthProfile.conditions;
-            // ---------------------------------
 
             document.getElementById('targetCal').innerText = healthProfile.targetCal;
             document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
@@ -329,14 +412,16 @@
             }
         }
 
-        // --- CHARTING & RENDERING FUNCTIONS ---
+        // --- CHARTING ---
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
+            if(labChartInstance) labChartInstance.destroy(); // Destroy old chart before creating new one
+
             const pStyles = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('tốt')||n.includes('hồi phục')) return 'star'; if(n.includes('cấp')||n.includes('cao')||n.includes('tăng')) return 'rectRot'; return 'circle'; });
             const pColors = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('cấp')||n.includes('tăng')) return '#e74c3c'; if(n.includes('tốt')) return '#27ae60'; return '#e74c3c'; });
             const pSizes = logs.map(l => (l.note && l.note.length>5)?8:4);
 
-            new Chart(ctx, {
+            labChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: logs.map(l => l.date),
@@ -358,8 +443,10 @@
 
         function renderWeightChart(logs, target) {
             const ctx = document.getElementById('weightChart').getContext('2d');
+            if(weightChartInstance) weightChartInstance.destroy();
+
             const gradient = ctx.createLinearGradient(0,0,0,200); gradient.addColorStop(0,'rgba(52,152,219,0.4)'); gradient.addColorStop(1,'rgba(52,152,219,0.0)');
-            new Chart(ctx, {
+            weightChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: logs.map(l => l.date),
@@ -370,8 +457,60 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { y: { suggestedMin: 58, suggestedMax: 80, grid:{color:'#f8f9fa'} }, x:{grid:{display:false}} },
+                    scales: { y: { suggestedMin: 58, suggestedMax: 80 }, x:{grid:{display:false}} },
                     plugins: { legend:{display:false} }
+                }
+            });
+        }
+
+        function renderCompareTable(logs) {
+            const thead = document.querySelector('#compareTable thead');
+            const tbody = document.querySelector('#compareTable tbody');
+            let hHTML = `<tr><th class="text-start" style="width: 35%;">Chỉ số & Ý nghĩa</th><th>Ngưỡng</th>`;
+            logs.forEach(l => hHTML += `<th>${l.date}</th>`);
+            thead.innerHTML = hHTML + '</tr>';
+            const metrics = [
+                {group:true, name:'GOUT & THẬN'},
+                {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout.'}, 
+                {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Đánh giá chức năng thận.'}, 
+                {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. <60 là suy thận.'},
+                {group:true, name:'GAN (MEN GAN)'},
+                {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng khi gan tổn thương.'}, 
+                {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan.'}, 
+                {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Nhạy cảm với rượu bia.'},
+                {group:true, name:'MỠ MÁU & ĐƯỜNG'},
+                {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần.'}, 
+                {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính.'}, 
+                {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Càng cao càng tốt.'},
+                {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói.'},
+                {group:true, name:'MÁU'},
+                {n:'WBC', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Bạch cầu (Miễn dịch).'}, 
+                {n:'RBC', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Hồng cầu (Oxy).'}, 
+                {n:'HGB', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Huyết sắc tố.'},
+                {n:'PLT', k:'plt', u:'K/µL', min:150, max:350, d:'Tiểu cầu (Đông máu).'}
+            ];
+            tbody.innerHTML = '';
+            metrics.forEach(m => {
+                if(m.group) {
+                    tbody.innerHTML += `<tr style="background: var(--border-color);"><td colspan="${logs.length+2}" class="fw-bold text-primary text-uppercase small ps-3 pt-3">${m.name}</td></tr>`;
+                } else {
+                    let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
+                    let row = `<tr>
+                        <td class="text-start ps-3">
+                            <div class="fw-bold">${m.n} <span class="opacity-75 fw-normal" style="font-size:0.85em">(${m.u})</span></div>
+                            <div class="opacity-75 fst-italic mt-1" style="font-size: 0.75rem;">${m.d}</div>
+                        </td>
+                        <td class="small align-middle opacity-75"><em>${range}</em></td>`;
+                    logs.forEach(l => {
+                        let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
+                        let cls = 'align-middle';
+                        if(typeof v === 'number') {
+                            if ((m.max && v > m.max) || (m.min && v < m.min)) cls += ' text-danger fw-bold';
+                            else if (m.k === 'hdl' && v >= m.min) cls += ' text-success fw-bold';
+                        }
+                        row += `<td class="${cls}">${v}</td>`;
+                    });
+                    tbody.innerHTML += row + '</tr>';
                 }
             });
         }
@@ -387,65 +526,11 @@
             document.getElementById('waterPercentText').innerText = Math.round(pct)+'%';
         }
 
-        function renderCompareTable(logs) {
-            const thead = document.querySelector('#compareTable thead');
-            const tbody = document.querySelector('#compareTable tbody');
-            let hHTML = `<tr><th class="text-start bg-light" style="width: 35%;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`;
-            logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`);
-            thead.innerHTML = hHTML + '</tr>';
-            const metrics = [
-                {group:true, name:'GOUT & THẬN'},
-                {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout. Cao gây lắng đọng tinh thể urate ở khớp.'}, 
-                {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Sản phẩm thoái hóa của cơ. Chỉ số quan trọng nhất đánh giá chức năng lọc máu của thận.'}, 
-                {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. < 60 là suy thận. Càng cao càng tốt.'},
-                {group:true, name:'GAN (MEN GAN)'},
-                {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng cao khi tế bào gan bị hủy hoại (viêm gan, nhiễm độc).'}, 
-                {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan. Tăng do tổn thương gan, tim, cơ hoặc vận động quá mạnh.'}, 
-                {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Men gan rất nhạy cảm với rượu bia, thuốc tây và tình trạng tắc mật.'},
-                {group:true, name:'MỠ MÁU & ĐƯỜNG HUYẾT'},
-                {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần. Cao gây xơ vữa động mạch.'}, 
-                {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính. Tăng do ăn nhiều tinh bột/ngọt/béo. Gây gan nhiễm mỡ.'}, 
-                {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Giúp dọn dẹp mạch máu. Chỉ số này càng cao càng tốt.'},
-                {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói. Đánh giá nguy cơ tiểu đường.'},
-                {group:true, name:'CÔNG THỨC MÁU'},
-                {n:'WBC (Bạch cầu)', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Tế bào miễn dịch. Tăng khi cơ thể bị viêm hoặc nhiễm trùng.'}, 
-                {n:'RBC (Hồng cầu)', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Tế bào vận chuyển oxy. Thấp là thiếu máu, cao là đa hồng cầu (máu cô đặc).'}, 
-                {n:'HGB (Huyết sắc tố)', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Lượng huyết sắc tố trong máu. Phản ánh chính xác tình trạng thiếu máu.'},
-                {n:'PLT (Tiểu cầu)', k:'plt', u:'K/µL', min:150, max:350, d:'Tế bào đông máu. Thấp dễ chảy máu, cao dễ gây cục máu đông.'}
-            ];
-            tbody.innerHTML = '';
-            metrics.forEach(m => {
-                if(m.group) {
-                    tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-uppercase small ps-3 pt-3">${m.name}</td></tr>`;
-                } else {
-                    let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
-                    let row = `<tr>
-                        <td class="text-start ps-3">
-                            <div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.85em">(${m.u})</span></div>
-                            <div class="text-muted fst-italic mt-1" style="font-size: 0.75rem; line-height: 1.2;">${m.d}</div>
-                        </td>
-                        <td class="text-muted small align-middle"><em>${range}</em></td>`;
-                    logs.forEach(l => {
-                        let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
-                        let cls = 'align-middle';
-                        if(typeof v === 'number') {
-                            if ((m.max && v > m.max) || (m.min && v < m.min)) cls += ' text-danger fw-bold';
-                            else if (m.k === 'hdl' && v >= m.min) cls += ' text-success fw-bold';
-                        }
-                        row += `<td class="${cls}">${v}</td>`;
-                    });
-                    tbody.innerHTML += row + '</tr>';
-                }
-            });
-        }
-
         function renderMeals(logs) { document.getElementById('mealTable').innerHTML=logs.slice().reverse().slice(0,5).map(l=>`<tr><td>${l.date}</td><td>${l.content}</td><td>${l.calories||'-'}</td><td>${l.evaluation}</td></tr>`).join(''); }
         function renderLifestyle(t) { document.getElementById('lifestyleTips').innerHTML=`<div class="col-3">🌅 ${t.morning}</div><div class="col-3">🍱 ${t.eating}</div><div class="col-3">🌙 ${t.evening}</div><div class="col-3">🏃 ${t.exercise}</div>`; }
         function loadDailyCalories() { const t=new Date().toLocaleDateString(); if(localStorage.getItem('cDate')!=t){localStorage.setItem('cDate',t);localStorage.setItem('dCal',0);} updateCalUI(parseInt(localStorage.getItem('dCal'))); }
         function addTempCal(n) { let c=parseInt(localStorage.getItem('dCal'))+n; localStorage.setItem('dCal',c); updateCalUI(c); }
-        // --- NEW: MANUAL ADD CALORIE ---
         function addManualCal() { const v = parseInt(document.getElementById('manualCalInput').value); if(v > 0) { addTempCal(v); document.getElementById('manualCalInput').value=''; } }
-        // -------------------------------
         function resetDailyCal() { localStorage.setItem('dCal',0); updateCalUI(0); }
         function updateCalUI(v) { document.getElementById('dailyCal').innerText=v; document.getElementById('calProgress').style.width=Math.min((v/healthProfile.targetCal)*100,100)+'%'; }
         function calculateTarget(l) { dailyTarget = (l.uric_acid>400||l.alt_liver>40)?3.0:2.5; document.getElementById('waterTargetDisplay').innerText=dailyTarget; }

@@ -1,42 +1,39 @@
 {
   "profile": {
-    "name": "Admin",
-    "conditions": ["Gout", "Trào ngược dạ dày (GERD)", "H. Pylori", "Theo dõi thận"],
-    "target_weight": 65,
+    "name": "Nguyễn Anh Thái",
+    "dob": "05/11/1991",
+    "conditions": ["Gout", "Trào ngược dạ dày (GERD)", "Rối loạn chức năng gan", "Theo dõi thận"],
+    "target_weight": 68,
     "daily_calories_target": 1800
   },
   "weight_log": [
     {"date": "2025-10-01", "value": 75},
-    {"date": "2025-10-15", "value": 74.5},
-    {"date": "2025-11-01", "value": 74.2}
-    {"date": "2025-11-15", "value": 73.5}
+    {"date": "2025-10-15", "value": 74.5}
+    {"date": "2025-11-01", "value": 74.4}
+    {"date": "2025-10-15", "value": 73.5}
   ],
   "medical_checkups": [
     {
-      "date": "2025-08-01",
-      "uric_acid": 450,
-      "creatinine": 95,
-      "egfr": 80,
-      "note": "Bác sĩ cảnh báo thận nhẹ, axit uric cao."
-    },
+      "date": "2025-10-01",
+      "uric_acid": 605.0,
+      "alt_liver": 97.4,
+      "creatinine": 88.91,
+      "glucose": 5.59,
+      "note": "Bùng phát cấp: Gout rất cao (605), Men gan tăng mạnh. Thận ổn."
+      },
     {
-      "date": "2023-11-01",
-      "uric_acid": 410,
-      "creatinine": 90,
-      "egfr": 85,
-      "note": "Đã giảm đạm, chỉ số tốt hơn."
+      "date": "2025-10-08",
+      "uric_acid": 326.0,
+      "alt_liver": 57.5,
+      "creatinine": null,
+      "glucose": 4.98,
+      "note": "Hồi phục tốt: Gout về bình thường, Men gan giảm 40%."
     }
   ],
   "diet_advice": {
-    "avoid": ["Nội tạng động vật", "Hải sản vỏ cứng", "Rượu bia", "Đồ chua cay (chanh, ớt)", "Thức ăn khuya"],
-    "recommended": ["Rau xanh đậm", "Ức gà", "Nước khoáng kiềm", "Tinh bột chậm (gạo lứt, yến mạch)"],
-    "rules": "Ăn chậm nhai kỹ, chia nhỏ bữa ăn (5 bữa/ngày), uống đủ 2.5L nước."
+    "avoid": ["Rượu bia (Tuyệt đối - do gan đang yếu)", "Thịt đỏ (Bò, dê)", "Hải sản vỏ cứng", "Nội tạng"],
+    "recommended": ["Uống nhiều nước (để thải Acid Uric dư)", "Cải bẹ xanh", "Đậu bắp", "Ức gà"],
+    "rules": "Duy trì đà giảm của tuần đầu tháng 10. Men gan còn cao, ngủ trước 23h là bắt buộc."
   },
-  "meal_logs": [
-    {
-        "date": "2023-11-20",
-        "content": "Sáng: Phở gà (bỏ da). Trưa: Cơm + rau luộc + thịt heo kho. Tối: Canh rau.",
-        "evaluation": "Tốt, ít purin nhưng cẩn thận mặn hại thận."
-    }
-  ]
+  "meal_logs": []
 }

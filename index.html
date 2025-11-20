@@ -13,9 +13,7 @@
         .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .header-gradient { background: linear-gradient(120deg, #2980b9, #8e44ad); color: white; padding: 30px 0; margin-bottom: 30px; border-radius: 0 0 20px 20px; }
         .search-box { border: 2px solid #3498db; border-radius: 25px; padding: 10px 20px; width: 100%; outline: none;}
-        .tip-icon { font-size: 1.5rem; margin-right: 10px; color: #3498db; }
         footer { background-color: #2c3e50; color: #bdc3c7; padding: 20px 0; text-align: center; margin-top: auto; }
-        .water-btn { transition: transform 0.1s; }
         .water-btn:active { transform: scale(0.95); }
     </style>
 </head>
@@ -34,7 +32,7 @@
                 <div class="col-md-12">
                     <div class="card p-4">
                         <h4 class="text-primary mb-3"><i class="bi bi-search"></i> Tra cứu nhanh thực phẩm</h4>
-                        <input type="text" id="foodSearch" class="search-box" placeholder="Nhập tên thực phẩm (ví dụ: Bò, Gà, Bia, Trứng...)" onkeyup="searchFood()">
+                        <input type="text" id="foodSearch" class="search-box" placeholder="Nhập tên thực phẩm..." onkeyup="searchFood()">
                         <div id="searchResult" class="mt-3"></div>
                     </div>
                 </div>
@@ -44,24 +42,26 @@
                 <div class="col-md-12">
                     <div class="card p-4">
                         <h4 class="text-success mb-3"><i class="bi bi-clock-history"></i> Lịch Trình Sinh Hoạt</h4>
-                        <div class="row" id="lifestyleTips">
-                            </div>
+                        <div class="row" id="lifestyleTips"></div>
                     </div>
                 </div>
             </div>
 
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-7">
                     <div class="card p-3 h-100">
-                        <h5><i class="bi bi-activity"></i> Diễn biến Gout & Gan</h5>
+                        <h5><i class="bi bi-activity"></i> Xét Nghiệm Máu (Kèm Ngưỡng An Toàn)</h5>
                         <canvas id="labChart"></canvas>
+                        <small class="text-muted mt-2 text-center d-block">*Đường nét đứt là ngưỡng an toàn cần duy trì.</small>
                     </div>
                 </div>
-                
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="card p-3 h-100">
                         <h5><i class="bi bi-speedometer2"></i> Theo Dõi Cân Nặng</h5>
                         <canvas id="weightChart"></canvas>
+                        <div class="text-center mt-3">
+                            <span class="badge bg-success">Mục tiêu: <span id="targetWeightDisplay">--</span> kg</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,31 +69,28 @@
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="card p-3 text-center bg-white h-100">
-                        <h5 class="text-info"><i class="bi bi-droplet-fill"></i> Theo Dõi Nước Uống</h5>
+                        <h5 class="text-info"><i class="bi bi-droplet-fill"></i> Nước Uống Hôm Nay</h5>
                         <h1 class="display-2 fw-bold text-primary" id="waterCount">0</h1>
-                        <p class="text-muted">ly (250ml) / Mục tiêu: <span id="waterTargetDisplay">--</span> L</p>
+                        <p class="text-muted">ly (250ml)</p>
                         <div class="progress mb-3" style="height: 10px;">
                             <div id="waterProgress" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
                         </div>
                         <div class="d-grid gap-2">
                             <button class="btn btn-outline-primary water-btn" onclick="addWater()">+ Uống 1 Ly</button>
-                            <button class="btn btn-sm btn-link text-muted" onclick="resetWater()">Reset ngày mới</button>
+                            <button class="btn btn-sm btn-link text-muted" onclick="resetWater()">Reset</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-8">
                     <div class="card p-3 h-100">
-                        <h5><i class="bi bi-journal-text"></i> Nhật ký Ăn uống & Đánh giá AI</h5>
+                        <h5><i class="bi bi-journal-text"></i> Nhật ký Ăn uống</h5>
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr><th style="width: 100px;">Ngày</th><th>Bữa ăn</th><th>Đánh giá</th></tr>
-                                </thead>
+                            <table class="table table-hover small">
+                                <thead><tr><th>Ngày</th><th>Bữa ăn</th><th>Đánh giá AI</th></tr></thead>
                                 <tbody id="mealTable"></tbody>
                             </table>
                         </div>
-                        <small class="text-muted text-center mt-2">Dữ liệu này cần cập nhật vào file data.json để hiển thị.</small>
                     </div>
                 </div>
             </div>
@@ -109,67 +106,106 @@
 
     <script>
         let foodDB = [];
-        const CUP_SIZE = 0.25; // 250ml
-        let dailyTarget = 2.5; // Mặc định
+        const CUP_SIZE = 0.25; 
+        let dailyTarget = 2.5; 
 
         fetch('data.json')
             .then(response => response.json())
             .then(data => {
                 foodDB = data.food_database;
                 renderLifestyle(data.lifestyle_tips);
-                renderLabChart(data.medical_checkups);
-                renderWeightChart(data.weight_log); // Đã thêm lại hàm này
-                renderMeals(data.meal_logs);
                 
-                // Tính lượng nước mục tiêu
+                // Render biểu đồ với dữ liệu & cấu hình mục tiêu
+                renderLabChart(data.medical_checkups);
+                renderWeightChart(data.weight_log, data.profile.target_weight);
+                
+                document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
+                
+                renderMeals(data.meal_logs);
                 calculateTarget(data.medical_checkups[data.medical_checkups.length - 1]);
-                // Load nước đã uống từ bộ nhớ trình duyệt
                 loadWater();
             });
 
-        // --- CÁC HÀM XỬ LÝ ---
+        // --- CẤU HÌNH BIỂU ĐỒ MỚI ---
 
-        function renderWeightChart(logs) {
+        function renderLabChart(logs) {
+            const ctx = document.getElementById('labChart').getContext('2d');
+            const labels = logs.map(l => l.date);
+
+            // Tạo mảng dữ liệu ngưỡng an toàn (đường thẳng ngang)
+            const safeGout = Array(logs.length).fill(420); // Ngưỡng Gout
+            const safeLiver = Array(logs.length).fill(40); // Ngưỡng Men gan
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        // Dữ liệu thực tế
+                        { label: 'Acid Uric (Gout)', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension: 0.3, yAxisID: 'y' },
+                        { label: 'Men gan (ALT)', data: logs.map(l => l.alt_liver), borderColor: '#f1c40f', tension: 0.3, yAxisID: 'y1' },
+                        { label: 'Creatinine (Thận)', data: logs.map(l => l.creatinine), borderColor: '#3498db', tension: 0.3, borderDash: [5,5], yAxisID: 'y1' },
+                        
+                        // Ngưỡng an toàn (Nét đứt mờ)
+                        { label: 'Ngưỡng Gout (420)', data: safeGout, borderColor: 'rgba(231, 76, 60, 0.3)', borderDash: [10,5], pointRadius: 0, borderWidth: 1, yAxisID: 'y', fill: false },
+                        { label: 'Ngưỡng Gan (40)', data: safeLiver, borderColor: 'rgba(241, 196, 15, 0.3)', borderDash: [10,5], pointRadius: 0, borderWidth: 1, yAxisID: 'y1', fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: {display: true, text: 'Gout (µmol/L)'} },
+                        y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display: true, text: 'Gan/Thận (U/L)'} }
+                    }
+                }
+            });
+        }
+
+        function renderWeightChart(logs, target) {
             const ctx = document.getElementById('weightChart').getContext('2d');
+            // Tạo đường mục tiêu
+            const targetLine = Array(logs.length).fill(target);
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: logs.map(l => l.date),
-                    datasets: [{
-                        label: 'Cân nặng (kg)',
-                        data: logs.map(l => l.value),
-                        borderColor: '#27ae60', // Màu xanh lá
-                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }]
+                    datasets: [
+                        {
+                            label: 'Cân nặng thực tế',
+                            data: logs.map(l => l.value),
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Mục tiêu (' + target + 'kg)',
+                            data: targetLine,
+                            borderColor: '#e67e22', // Màu cam
+                            borderDash: [10, 5], // Nét đứt
+                            pointRadius: 0,
+                            borderWidth: 2,
+                            fill: false
+                        }
+                    ]
                 },
                 options: { responsive: true }
             });
         }
 
+        // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
         function calculateTarget(latest) {
             if(latest.uric_acid > 400 || latest.alt_liver > 40) dailyTarget = 3.0;
             else dailyTarget = 2.5;
-            document.getElementById('waterTargetDisplay').innerText = dailyTarget;
         }
-
-        // Xử lý nước uống với LocalStorage
         function loadWater() {
             const today = new Date().toLocaleDateString('vi-VN');
             const savedDate = localStorage.getItem('waterDate');
-            let count = 0;
-
-            if (savedDate === today) {
-                count = parseInt(localStorage.getItem('waterCount')) || 0;
-            } else {
-                // Sang ngày mới, reset
-                localStorage.setItem('waterDate', today);
-                localStorage.setItem('waterCount', 0);
-            }
+            let count = (savedDate === today) ? parseInt(localStorage.getItem('waterCount')) || 0 : 0;
+            if(savedDate !== today) { localStorage.setItem('waterDate', today); localStorage.setItem('waterCount', 0); }
             updateWaterUI(count);
         }
-
         function addWater() {
             let count = parseInt(localStorage.getItem('waterCount')) || 0;
             count++;
@@ -177,29 +213,16 @@
             localStorage.setItem('waterDate', new Date().toLocaleDateString('vi-VN'));
             updateWaterUI(count);
         }
-
         function resetWater() {
-            if(confirm('Bạn muốn xóa số liệu nước uống hôm nay?')) {
-                localStorage.setItem('waterCount', 0);
-                updateWaterUI(0);
-            }
+            if(confirm('Reset nước uống?')) { localStorage.setItem('waterCount', 0); updateWaterUI(0); }
         }
-
         function updateWaterUI(count) {
             document.getElementById('waterCount').innerText = count;
-            const currentLiters = count * CUP_SIZE;
-            const percent = Math.min((currentLiters / dailyTarget) * 100, 100);
-            document.getElementById('waterProgress').style.width = percent + '%';
-            
-            // Đổi màu nếu đủ mục tiêu
+            const percent = Math.min((count * CUP_SIZE / dailyTarget) * 100, 100);
             const bar = document.getElementById('waterProgress');
-            if(percent >= 100) {
-                bar.classList.remove('bg-info');
-                bar.classList.add('bg-success');
-            }
+            bar.style.width = percent + '%';
+            if(percent >= 100) { bar.classList.remove('bg-info'); bar.classList.add('bg-success'); }
         }
-
-        // Các hàm cũ (Search, Lifestyle, LabChart...) giữ nguyên logic
         function searchFood() {
             const input = document.getElementById('foodSearch').value.toLowerCase();
             const resultDiv = document.getElementById('searchResult');
@@ -211,42 +234,20 @@
                     let colorClass = item.status === 'green' ? 'alert-success' : (item.status === 'yellow' ? 'alert-warning' : 'alert-danger');
                     resultDiv.innerHTML += `<div class="alert ${colorClass} p-2 mb-2"><strong>${item.name}</strong>: ${item.reason}</div>`;
                 });
-            } else { resultDiv.innerHTML = '<p class="text-muted small">Chưa tìm thấy thực phẩm này.</p>'; }
+            } else { resultDiv.innerHTML = '<p class="text-muted small">Chưa tìm thấy.</p>'; }
         }
-
         function renderLifestyle(tips) {
             document.getElementById('lifestyleTips').innerHTML = `
-                <div class="col-md-3 col-6 mb-3"><i class="bi bi-sun tip-icon"></i><strong>Sáng:</strong><br><small>${tips.morning}</small></div>
-                <div class="col-md-3 col-6 mb-3"><i class="bi bi-cup-hot tip-icon"></i><strong>Ăn:</strong><br><small>${tips.eating}</small></div>
-                <div class="col-md-3 col-6 mb-3"><i class="bi bi-moon-stars tip-icon"></i><strong>Tối:</strong><br><small>${tips.evening}</small></div>
-                <div class="col-md-3 col-6 mb-3"><i class="bi bi-person-walking tip-icon"></i><strong>Tập:</strong><br><small>${tips.exercise}</small></div>
-            `;
+                <div class="col-6 col-md-3 mb-2"><strong>Sáng:</strong><br><small>${tips.morning}</small></div>
+                <div class="col-6 col-md-3 mb-2"><strong>Ăn:</strong><br><small>${tips.eating}</small></div>
+                <div class="col-6 col-md-3 mb-2"><strong>Tối:</strong><br><small>${tips.evening}</small></div>
+                <div class="col-6 col-md-3 mb-2"><strong>Tập:</strong><br><small>${tips.exercise}</small></div>`;
         }
-
-        function renderLabChart(logs) {
-            const ctx = document.getElementById('labChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: logs.map(l => l.date),
-                    datasets: [
-                        { label: 'Gout', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension: 0.3 },
-                        { label: 'Men gan', data: logs.map(l => l.alt_liver), borderColor: '#f1c40f', tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true }
-            });
-        }
-
         function renderMeals(logs) {
-            const tbody = document.getElementById('mealTable');
-            tbody.innerHTML = ''; // Clear old data
-            if(logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Chưa có dữ liệu nhật ký</td></tr>';
-                return;
-            }
-            logs.slice().reverse().forEach(log => {
-                tbody.innerHTML += `<tr><td><small><b>${log.date}</b></small></td><td><small>${log.content}</small></td><td><small class="text-success"><em>${log.evaluation}</em></small></td></tr>`;
+             const tbody = document.getElementById('mealTable');
+             tbody.innerHTML = '';
+             logs.slice().reverse().forEach(log => {
+                tbody.innerHTML += `<tr><td>${log.date}</td><td>${log.content}</td><td><em class="text-success">${log.evaluation}</em></td></tr>`;
             });
         }
     </script>

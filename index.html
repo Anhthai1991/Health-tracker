@@ -343,38 +343,72 @@
         }
 
         // --- BẢNG SO SÁNH FULL (LOGIC CŨ ĐÃ KHÔI PHỤC) ---
+        // --- BẢNG SO SÁNH (CÓ GIẢI THÍCH Ý NGHĨA) ---
         function renderCompareTable(logs) {
             const thead = document.querySelector('#compareTable thead');
             const tbody = document.querySelector('#compareTable tbody');
-            let hHTML = `<tr><th class="text-start bg-light">Chỉ số</th>`;
-            logs.forEach(l => hHTML += `<th>${l.date}</th>`);
+            
+            // Header: Giữ nguyên
+            let hHTML = `<tr><th class="text-start bg-light" style="width: 250px;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`;
+            logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`);
             thead.innerHTML = hHTML + '</tr>';
             
+            // Danh sách chỉ số KÈM GIẢI THÍCH (d: description)
             const metrics = [
                 {group:true, name:'GOUT & THẬN'},
-                {n:'Acid Uric', k:'uric_acid', max:420}, {n:'Creatinine', k:'creatinine', min:62, max:120}, {n:'eGFR', k:'egfr', min:90},
-                {group:true, name:'GAN'},
-                {n:'ALT', k:'alt_liver', max:40}, {n:'AST', k:'ast_liver', max:37}, {n:'GGT', k:'ggt_liver', max:50},
-                {group:true, name:'MÁU'},
-                {n:'Cholest.', k:'cholesterol', max:5.2}, {n:'Trigly.', k:'triglyceride', max:1.88}, {n:'WBC', k:'wbc', max:9.0}, {n:'RBC', k:'rbc', max:5.2}
+                {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout. Cao gây lắng đọng tinh thể ở khớp.'}, 
+                {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Đánh giá chức năng lọc của Thận. Cao là thận yếu.'}, 
+                {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. < 60 là suy thận.'},
+                
+                {group:true, name:'GAN (Men gan)'},
+                {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng cao khi tế bào gan bị hủy hoại.'}, 
+                {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan. Tăng do tổn thương gan, tim hoặc cơ.'}, 
+                {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Men gan. Rất nhạy cảm với rượu bia và tắc mật.'},
+
+                {group:true, name:'MỠ MÁU & ĐƯỜNG'},
+                {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần. Cao gây xơ vữa động mạch.'}, 
+                {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính. Tăng do ăn nhiều ngọt/tinh bột.'}, 
+                {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Giúp dọn dẹp mạch máu (Càng cao càng tốt).'},
+                {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói. Đánh giá nguy cơ tiểu đường.'},
+
+                {group:true, name:'CÔNG THỨC MÁU'},
+                {n:'WBC (Bạch cầu)', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Tế bào miễn dịch. Tăng khi cơ thể bị viêm/nhiễm trùng.'}, 
+                {n:'RBC (Hồng cầu)', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Tế bào vận chuyển oxy. Thấp là thiếu máu.'}, 
+                {n:'HGB (Huyết sắc tố)', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Lượng huyết sắc tố. Phản ánh tình trạng thiếu máu.'},
+                {n:'PLT (Tiểu cầu)', k:'plt', u:'K/µL', min:150, max:350, d:'Tế bào đông máu. Thấp dễ chảy máu, cao dễ đông máu.'}
             ];
             
             tbody.innerHTML = '';
             metrics.forEach(m => {
-                if(m.group) tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+1}" class="fw-bold text-primary text-start ps-3">${m.name}</td></tr>`;
-                else {
-                    let row = `<tr><td class="text-start fw-bold ps-3">${m.n}</td>`;
+                if(m.group) {
+                    // Dòng tiêu đề nhóm
+                    tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-start ps-3 text-uppercase small">${m.name}</td></tr>`;
+                } else {
+                    // Dòng dữ liệu
+                    let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
+                    
+                    // Cột Tên + Giải thích
+                    let row = `<tr>
+                        <td class="text-start ps-3">
+                            <div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.8em">(${m.u})</span></div>
+                            <div class="text-muted fst-italic" style="font-size: 0.75rem;">${m.d}</div>
+                        </td>
+                        <td class="text-muted small align-middle"><em>${range}</em></td>`;
+                    
+                    // Các cột giá trị theo ngày
                     logs.forEach(l => {
-                        let v = l[m.k] || '-';
-                        let cls = '';
-                        if(typeof v === 'number' && ((m.max && v>m.max) || (m.min && v<m.min))) cls = 'text-danger fw-bold';
+                        let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
+                        let cls = 'align-middle';
+                        if(typeof v === 'number') {
+                            if(m.max && v > m.max) cls += ' text-danger fw-bold'; // Cao hơn ngưỡng
+                            if(m.min && v < m.min) cls += ' text-danger fw-bold'; // Thấp hơn ngưỡng
+                        }
                         row += `<td class="${cls}">${v}</td>`;
                     });
                     tbody.innerHTML += row + '</tr>';
                 }
             });
         }
-
         // --- CÁC HÀM PHỤ TRỢ ---
         function renderWeightChart(logs, target) { new Chart(document.getElementById('weightChart'), {type:'line', data:{labels:logs.map(l=>l.date), datasets:[{label:'Kg', data:logs.map(l=>l.value), borderColor:'#3498db', tension:0.3}, {label:'Mục tiêu', data:Array(logs.length).fill(target), borderColor:'#2ecc71', borderDash:[5,5]}]}}); }
         function renderMeals(logs) { document.getElementById('mealTable').innerHTML = logs.slice().reverse().slice(0,5).map(l=>`<tr><td>${l.date}</td><td>${l.content}</td><td><span class="badge bg-secondary">${l.calories||'-'}</span></td><td>${l.evaluation}</td></tr>`).join(''); }

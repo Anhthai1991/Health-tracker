@@ -1,11 +1,14 @@
 {
   "profile": {
     "name": "Nguyễn Anh Thái",
-    "dob": "05/11/1991",
+    "dob": "1991",
+    "gender": "Nam",
+    "height": 1.65,
+    "blood_type": "O+",
     "conditions": ["Gout", "Trào ngược dạ dày (GERD)", "Men gan cao", "Theo dõi thận"],
     "target_weight": 68,
     "daily_calories_target": 1800
-  },
+    },
   "weight_log": [
     {"date": "2025-10-01", "value": 75},
     {"date": "2025-10-15", "value": 74.5},

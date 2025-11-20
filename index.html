@@ -37,7 +37,7 @@
 
     <div class="header-gradient text-center no-print">
         <div class="container">
-            <h2 class="fw-bold">Nguyễn Anh Thái</h2>
+            <h2 class="fw-bold" id="headerName">Nguyễn Anh Thái</h2>
             <p class="opacity-75 small">Dashboard Theo Dõi Sức Khỏe</p>
             <button class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#keyModal">
                 <i class="bi bi-key-fill"></i> Cài đặt AI
@@ -54,6 +54,36 @@
 
     <div class="container main-content">
         
+        <div class="row mb-4 no-print">
+            <div class="col-12">
+                <div class="card p-3 border-info border-start border-4">
+                    <h6 class="text-info fw-bold mb-3"><i class="bi bi-person-vcard-fill"></i> Thông Tin Cá Nhân</h6>
+                    <div class="row small">
+                        <div class="col-6 col-md-3 mb-2">
+                            <span class="text-muted">Họ tên:</span><br>
+                            <strong id="pName">--</strong>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <span class="text-muted">Tuổi / Giới tính:</span><br>
+                            <strong><span id="pAge">--</span> / <span id="pGender">--</span></strong>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <span class="text-muted">Thể trạng:</span><br>
+                            <strong><span id="pHeight">--</span>m / <span id="pWeight">--</span>kg</strong>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <span class="text-muted">Nhóm máu:</span><br>
+                            <strong class="text-danger" id="pBlood">--</strong>
+                        </div>
+                        <div class="col-12 mt-1">
+                             <span class="text-muted">Bệnh lý nền:</span><br>
+                             <span id="pConditions" class="badge bg-warning text-dark text-wrap text-start" style="line-height: 1.4;">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row mb-3 no-print">
             <div class="col-6 col-md-3"><button class="tool-btn bg-white text-primary" onclick="window.print()"><span>In Báo Cáo</span><i class="bi bi-printer"></i></button></div>
             <div class="col-6 col-md-3"><button class="tool-btn bg-white text-success" data-bs-toggle="modal" data-bs-target="#adminModal"><span>Nhập Liệu</span><i class="bi bi-pencil-square"></i></button></div>
@@ -88,8 +118,16 @@
                         <h2 class="fw-bold text-danger mb-0" id="dailyCal">0</h2>
                         <div class="text-end small"><span class="text-muted">Mục tiêu</span><br><strong id="targetCal">1800</strong></div>
                     </div>
-                    <div class="progress mt-2" style="height: 8px;"><div id="calProgress" class="progress-bar bg-danger" style="width: 0%"></div></div>
-                    <button class="btn btn-sm btn-link text-muted mt-1 p-0" onclick="resetDailyCal()" style="font-size: 0.8rem;">Reset về 0</button>
+                    <div class="progress mt-2 mb-3" style="height: 8px;"><div id="calProgress" class="progress-bar bg-danger" style="width: 0%"></div></div>
+                    
+                    <div class="input-group input-group-sm mt-auto">
+                        <span class="input-group-text bg-light">Nạp nhanh</span>
+                        <input type="number" id="manualCalInput" class="form-control" placeholder="Nhập số calo...">
+                        <button class="btn btn-outline-danger" onclick="addManualCal()">+</button>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                         <button class="btn btn-sm btn-link text-muted p-0" onclick="resetDailyCal()" style="font-size: 0.8rem;">Reset về 0</button>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -205,16 +243,13 @@
     <script>
         let foodDB = [], healthProfile = {};
         const CUP_SIZE = 0.25; let dailyTarget = 2.5; 
-        // Model Priority
         const MODEL_LIST = ["gemini-2.5-flash", "gemini-2.0-flash-001", "gemini-2.0-flash-lite-001"];
 
         fetch('data.json').then(r => r.json()).then(data => {
             foodDB = data.food_database;
             
-            // --- [NEW] AUTO SORT DATES (Đảm bảo biểu đồ chạy đúng thời gian) ---
             data.medical_checkups.sort((a, b) => new Date(a.date) - new Date(b.date));
             data.weight_log.sort((a, b) => new Date(a.date) - new Date(b.date));
-            // ------------------------------------------------------------------
 
             healthProfile = {
                 conditions: data.profile.conditions.join(", "),
@@ -222,6 +257,22 @@
                 targetCal: data.profile.daily_calories_target || 1800
             };
             
+            // --- NEW: RENDER PERSONAL INFO ---
+            document.getElementById('headerName').innerText = data.profile.name;
+            document.getElementById('pName').innerText = data.profile.name;
+            const currentYear = new Date().getFullYear();
+            const age = currentYear - parseInt(data.profile.dob);
+            document.getElementById('pAge').innerText = age;
+            document.getElementById('pGender').innerText = data.profile.gender;
+            document.getElementById('pHeight').innerText = data.profile.height;
+            
+            // Lấy cân nặng mới nhất
+            const lastWeight = data.weight_log.length > 0 ? data.weight_log[data.weight_log.length - 1].value : "--";
+            document.getElementById('pWeight').innerText = lastWeight;
+            document.getElementById('pBlood').innerText = data.profile.blood_type;
+            document.getElementById('pConditions').innerText = healthProfile.conditions;
+            // ---------------------------------
+
             document.getElementById('targetCal').innerText = healthProfile.targetCal;
             document.getElementById('targetWeightDisplay').innerText = data.profile.target_weight;
             
@@ -278,11 +329,9 @@
             }
         }
 
-        // --- 1. BIỂU ĐỒ GOUT (2 TRỤC + SỰ KIỆN) ---
+        // --- CHARTING & RENDERING FUNCTIONS ---
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
-            
-            // Sự kiện (Kim cương / Sao)
             const pStyles = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('tốt')||n.includes('hồi phục')) return 'star'; if(n.includes('cấp')||n.includes('cao')||n.includes('tăng')) return 'rectRot'; return 'circle'; });
             const pColors = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('cấp')||n.includes('tăng')) return '#e74c3c'; if(n.includes('tốt')) return '#27ae60'; return '#e74c3c'; });
             const pSizes = logs.map(l => (l.note && l.note.length>5)?8:4);
@@ -307,7 +356,6 @@
             });
         }
 
-        // --- 2. BIỂU ĐỒ CÂN NẶNG (SCALE CHUẨN NAM 1M65) ---
         function renderWeightChart(logs, target) {
             const ctx = document.getElementById('weightChart').getContext('2d');
             const gradient = ctx.createLinearGradient(0,0,0,200); gradient.addColorStop(0,'rgba(52,152,219,0.4)'); gradient.addColorStop(1,'rgba(52,152,219,0.0)');
@@ -328,7 +376,6 @@
             });
         }
 
-        // --- 3. THANH NƯỚC (TIẾN ĐỘ %) ---
         function loadWater() { const t=new Date().toLocaleDateString(); if(localStorage.getItem('wDate')!=t){localStorage.setItem('wDate',t);localStorage.setItem('wCount',0);} updateWaterUI(parseInt(localStorage.getItem('wCount'))||0); }
         function addWater() { let c=(parseInt(localStorage.getItem('wCount'))||0)+1; localStorage.setItem('wCount',c); updateWaterUI(c); }
         function resetWater() { if(confirm('Reset?')){localStorage.setItem('wCount',0); updateWaterUI(0);} }
@@ -340,76 +387,50 @@
             document.getElementById('waterPercentText').innerText = Math.round(pct)+'%';
         }
 
-        
-        // --- CẬP NHẬT: BẢNG SO SÁNH CÓ GIẢI THÍCH CHI TIẾT ---
         function renderCompareTable(logs) {
             const thead = document.querySelector('#compareTable thead');
             const tbody = document.querySelector('#compareTable tbody');
-            
-            // 1. Tạo Header cột
             let hHTML = `<tr><th class="text-start bg-light" style="width: 35%;">Chỉ số & Ý nghĩa</th><th class="bg-light">Ngưỡng</th>`;
             logs.forEach(l => hHTML += `<th class="bg-white">${l.date}</th>`);
             thead.innerHTML = hHTML + '</tr>';
-            
-            // 2. Danh sách chỉ số kèm giải thích (d: description)
             const metrics = [
-                // Nhóm GOUT & THẬN
                 {group:true, name:'GOUT & THẬN'},
                 {n:'Acid Uric', k:'uric_acid', u:'µmol/L', max:420, d:'Tác nhân gây bệnh Gout. Cao gây lắng đọng tinh thể urate ở khớp.'}, 
                 {n:'Creatinine', k:'creatinine', u:'µmol/L', min:62, max:120, d:'Sản phẩm thoái hóa của cơ. Chỉ số quan trọng nhất đánh giá chức năng lọc máu của thận.'}, 
                 {n:'eGFR', k:'egfr', u:'ml/min', min:90, d:'Độ lọc cầu thận. < 60 là suy thận. Càng cao càng tốt.'},
-                
-                // Nhóm GAN
                 {group:true, name:'GAN (MEN GAN)'},
                 {n:'ALT (GPT)', k:'alt_liver', u:'U/L', max:40, d:'Men gan đặc hiệu. Tăng cao khi tế bào gan bị hủy hoại (viêm gan, nhiễm độc).'}, 
                 {n:'AST (GOT)', k:'ast_liver', u:'U/L', max:37, d:'Men gan. Tăng do tổn thương gan, tim, cơ hoặc vận động quá mạnh.'}, 
                 {n:'GGT', k:'ggt_liver', u:'U/L', max:50, d:'Men gan rất nhạy cảm với rượu bia, thuốc tây và tình trạng tắc mật.'},
-
-                // Nhóm MỠ MÁU & ĐƯỜNG
                 {group:true, name:'MỠ MÁU & ĐƯỜNG HUYẾT'},
                 {n:'Cholesterol', k:'cholesterol', u:'mmol/L', max:5.2, d:'Mỡ máu tổng phần. Cao gây xơ vữa động mạch.'}, 
                 {n:'Triglyceride', k:'triglyceride', u:'mmol/L', max:1.88, d:'Chất béo trung tính. Tăng do ăn nhiều tinh bột/ngọt/béo. Gây gan nhiễm mỡ.'}, 
                 {n:'HDL-C', k:'hdl', u:'mmol/L', min:0.9, d:'Mỡ tốt. Giúp dọn dẹp mạch máu. Chỉ số này càng cao càng tốt.'},
                 {n:'Glucose', k:'glucose', u:'mmol/L', max:6.4, d:'Đường huyết lúc đói. Đánh giá nguy cơ tiểu đường.'},
-
-                // Nhóm CÔNG THỨC MÁU
                 {group:true, name:'CÔNG THỨC MÁU'},
                 {n:'WBC (Bạch cầu)', k:'wbc', u:'K/µL', min:4.5, max:9.0, d:'Tế bào miễn dịch. Tăng khi cơ thể bị viêm hoặc nhiễm trùng.'}, 
                 {n:'RBC (Hồng cầu)', k:'rbc', u:'M/µL', min:3.7, max:5.2, d:'Tế bào vận chuyển oxy. Thấp là thiếu máu, cao là đa hồng cầu (máu cô đặc).'}, 
                 {n:'HGB (Huyết sắc tố)', k:'hgb', u:'g/dL', min:9.0, max:16.5, d:'Lượng huyết sắc tố trong máu. Phản ánh chính xác tình trạng thiếu máu.'},
                 {n:'PLT (Tiểu cầu)', k:'plt', u:'K/µL', min:150, max:350, d:'Tế bào đông máu. Thấp dễ chảy máu, cao dễ gây cục máu đông.'}
             ];
-            
-            // 3. Render dữ liệu
             tbody.innerHTML = '';
             metrics.forEach(m => {
                 if(m.group) {
-                    // Dòng tiêu đề nhóm
                     tbody.innerHTML += `<tr class="table-light"><td colspan="${logs.length+2}" class="fw-bold text-primary text-uppercase small ps-3 pt-3">${m.name}</td></tr>`;
                 } else {
-                    // Dòng dữ liệu chi tiết
                     let range = m.min && m.max ? `${m.min}-${m.max}` : (m.max ? `< ${m.max}` : `> ${m.min}`);
-                    
-                    // Cột 1: Tên + Giải thích (Quan trọng)
                     let row = `<tr>
                         <td class="text-start ps-3">
                             <div class="fw-bold text-dark">${m.n} <span class="text-muted fw-normal" style="font-size:0.85em">(${m.u})</span></div>
                             <div class="text-muted fst-italic mt-1" style="font-size: 0.75rem; line-height: 1.2;">${m.d}</div>
                         </td>
                         <td class="text-muted small align-middle"><em>${range}</em></td>`;
-                    
-                    // Các cột giá trị theo ngày
                     logs.forEach(l => {
                         let v = l[m.k] !== undefined && l[m.k] !== null ? l[m.k] : '-';
                         let cls = 'align-middle';
-                        
-                        // Logic tô màu cảnh báo
                         if(typeof v === 'number') {
-                            if ((m.max && v > m.max) || (m.min && v < m.min)) {
-                                cls += ' text-danger fw-bold'; // Cảnh báo đỏ nếu vượt ngưỡng
-                            } else if (m.k === 'hdl' && v >= m.min) {
-                                cls += ' text-success fw-bold'; // Mỡ tốt cao thì màu xanh
-                            }
+                            if ((m.max && v > m.max) || (m.min && v < m.min)) cls += ' text-danger fw-bold';
+                            else if (m.k === 'hdl' && v >= m.min) cls += ' text-success fw-bold';
                         }
                         row += `<td class="${cls}">${v}</td>`;
                     });
@@ -418,11 +439,13 @@
             });
         }
 
-        // --- HELPERS ---
         function renderMeals(logs) { document.getElementById('mealTable').innerHTML=logs.slice().reverse().slice(0,5).map(l=>`<tr><td>${l.date}</td><td>${l.content}</td><td>${l.calories||'-'}</td><td>${l.evaluation}</td></tr>`).join(''); }
         function renderLifestyle(t) { document.getElementById('lifestyleTips').innerHTML=`<div class="col-3">🌅 ${t.morning}</div><div class="col-3">🍱 ${t.eating}</div><div class="col-3">🌙 ${t.evening}</div><div class="col-3">🏃 ${t.exercise}</div>`; }
         function loadDailyCalories() { const t=new Date().toLocaleDateString(); if(localStorage.getItem('cDate')!=t){localStorage.setItem('cDate',t);localStorage.setItem('dCal',0);} updateCalUI(parseInt(localStorage.getItem('dCal'))); }
         function addTempCal(n) { let c=parseInt(localStorage.getItem('dCal'))+n; localStorage.setItem('dCal',c); updateCalUI(c); }
+        // --- NEW: MANUAL ADD CALORIE ---
+        function addManualCal() { const v = parseInt(document.getElementById('manualCalInput').value); if(v > 0) { addTempCal(v); document.getElementById('manualCalInput').value=''; } }
+        // -------------------------------
         function resetDailyCal() { localStorage.setItem('dCal',0); updateCalUI(0); }
         function updateCalUI(v) { document.getElementById('dailyCal').innerText=v; document.getElementById('calProgress').style.width=Math.min((v/healthProfile.targetCal)*100,100)+'%'; }
         function calculateTarget(l) { dailyTarget = (l.uric_acid>400||l.alt_liver>40)?3.0:2.5; document.getElementById('waterTargetDisplay').innerText=dailyTarget; }

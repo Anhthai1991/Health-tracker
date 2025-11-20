@@ -1,7 +1,7 @@
 {
   "profile": {
     "name": "Nguyễn Anh Thái",
-    "dob": "1991",
+    "dob": "05/11/1991",
     "conditions": ["Gout", "Trào ngược dạ dày (GERD)", "Men gan cao", "Theo dõi thận"],
     "target_weight": 68,
     "daily_calories_target": 1800
@@ -10,9 +10,45 @@
     {"date": "2025-10-01", "value": 75},
     {"date": "2025-10-15", "value": 74.5},
     {"date": "2025-11-01", "value": 74.3},
-    {"date": "2025-10-15", "value": 73.8}
+    {"date": "2025-11-15", "value": 73.8}
   ],
   "medical_checkups": [
+    {
+      "date": "2023-05-05",
+      "uric_acid": 489.0,
+      "alt_liver": 50.9,
+      "ast_liver": 30.4,
+      "ggt_liver": 28.0,
+      "creatinine": 79.0,
+      "egfr": 105.0,
+      "glucose": 4.52,
+      "cholesterol": 4.08,
+      "triglyceride": 1.55,
+      "hdl": 1.11,
+      "wbc": 3.94,
+      "rbc": 5.35,
+      "hgb": 16.9,
+      "plt": 211,
+      "note": "Lịch sử 2023: Gout bắt đầu tăng. Men gan ALT cao."
+    },
+    {
+      "date": "2024-11-09",
+      "uric_acid": 555.0,
+      "alt_liver": 40.0,
+      "ast_liver": 28.8,
+      "ggt_liver": 29.8,
+      "creatinine": 88.6,
+      "egfr": 91.0,
+      "glucose": 4.36,
+      "cholesterol": 4.06,
+      "triglyceride": 1.44,
+      "hdl": 1.28,
+      "wbc": 4.40,
+      "rbc": 5.28,
+      "hgb": 16.5,
+      "plt": 202,
+      "note": "Lịch sử 2024: Gout tăng mạnh (555). Men gan ở giới hạn."
+    },
     {
       "date": "2025-10-01",
       "uric_acid": 605.0,
@@ -29,7 +65,7 @@
       "rbc": 5.53,
       "hgb": 16.7,
       "plt": 223,
-      "note": "Gout cấp (605). Men gan cao. Hồng cầu cao."
+      "note": "Gout cấp tính (đỉnh điểm). Men gan bùng phát."
     },
     {
       "date": "2025-10-08",
@@ -47,7 +83,7 @@
       "rbc": 5.31,
       "hgb": 16.0,
       "plt": 225,
-      "note": "Hồi phục tốt. Gout & Men gan giảm mạnh."
+      "note": "Hồi phục tốt sau điều trị. Các chỉ số giảm sâu."
     }
   ],
   "food_database": [

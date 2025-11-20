@@ -210,6 +210,12 @@
 
         fetch('data.json').then(r => r.json()).then(data => {
             foodDB = data.food_database;
+            
+            // --- [NEW] AUTO SORT DATES (Đảm bảo biểu đồ chạy đúng thời gian) ---
+            data.medical_checkups.sort((a, b) => new Date(a.date) - new Date(b.date));
+            data.weight_log.sort((a, b) => new Date(a.date) - new Date(b.date));
+            // ------------------------------------------------------------------
+
             healthProfile = {
                 conditions: data.profile.conditions.join(", "),
                 lastCheckup: data.medical_checkups[data.medical_checkups.length - 1],
@@ -277,8 +283,8 @@
             const ctx = document.getElementById('labChart').getContext('2d');
             
             // Sự kiện (Kim cương / Sao)
-            const pStyles = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('tốt')||n.includes('hồi phục')) return 'star'; if(n.includes('cấp')||n.includes('cao')) return 'rectRot'; return 'circle'; });
-            const pColors = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('cấp')) return '#e74c3c'; if(n.includes('tốt')) return '#27ae60'; return '#e74c3c'; });
+            const pStyles = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('tốt')||n.includes('hồi phục')) return 'star'; if(n.includes('cấp')||n.includes('cao')||n.includes('tăng')) return 'rectRot'; return 'circle'; });
+            const pColors = logs.map(l => { const n=(l.note||'').toLowerCase(); if(n.includes('cấp')||n.includes('tăng')) return '#e74c3c'; if(n.includes('tốt')) return '#27ae60'; return '#e74c3c'; });
             const pSizes = logs.map(l => (l.note && l.note.length>5)?8:4);
 
             new Chart(ctx, {

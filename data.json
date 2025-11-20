@@ -1,0 +1,42 @@
+{
+  "profile": {
+    "name": "Admin",
+    "conditions": ["Gout", "Trào ngược dạ dày (GERD)", "H. Pylori", "Theo dõi thận"],
+    "target_weight": 65,
+    "daily_calories_target": 1800
+  },
+  "weight_log": [
+    {"date": "2025-10-01", "value": 75},
+    {"date": "2025-10-15", "value": 74.5},
+    {"date": "2025-11-01", "value": 74.2}
+    {"date": "2025-11-15", "value": 73.5}
+  ],
+  "medical_checkups": [
+    {
+      "date": "2025-08-01",
+      "uric_acid": 450,
+      "creatinine": 95,
+      "egfr": 80,
+      "note": "Bác sĩ cảnh báo thận nhẹ, axit uric cao."
+    },
+    {
+      "date": "2023-11-01",
+      "uric_acid": 410,
+      "creatinine": 90,
+      "egfr": 85,
+      "note": "Đã giảm đạm, chỉ số tốt hơn."
+    }
+  ],
+  "diet_advice": {
+    "avoid": ["Nội tạng động vật", "Hải sản vỏ cứng", "Rượu bia", "Đồ chua cay (chanh, ớt)", "Thức ăn khuya"],
+    "recommended": ["Rau xanh đậm", "Ức gà", "Nước khoáng kiềm", "Tinh bột chậm (gạo lứt, yến mạch)"],
+    "rules": "Ăn chậm nhai kỹ, chia nhỏ bữa ăn (5 bữa/ngày), uống đủ 2.5L nước."
+  },
+  "meal_logs": [
+    {
+        "date": "2023-11-20",
+        "content": "Sáng: Phở gà (bỏ da). Trưa: Cơm + rau luộc + thịt heo kho. Tối: Canh rau.",
+        "evaluation": "Tốt, ít purin nhưng cẩn thận mặn hại thận."
+    }
+  ]
+}

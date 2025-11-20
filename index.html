@@ -177,42 +177,65 @@
         });
 
         // --- HÀM QUAN TRỌNG NHẤT: TỰ DÒ TÌM MODEL ---
+        // --- SỬA LỖI QUOTA: ƯU TIÊN TÌM MODEL MIỄN PHÍ (FLASH) TRƯỚC ---
         async function detectModel(key) {
             const statusDiv = document.getElementById('modelStatus');
-            statusDiv.innerText = "⏳ Đang dò tìm phiên bản AI phù hợp...";
+            statusDiv.innerText = "⏳ Đang tìm model miễn phí tốt nhất...";
             
             try {
-                // Gọi API lấy danh sách Model
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
                 const data = await response.json();
 
                 if(data.error) {
                     alert('Lỗi Key: ' + data.error.message);
-                    statusDiv.innerText = "❌ Key không hợp lệ";
+                    statusDiv.innerText = "❌ Key lỗi";
                     return;
                 }
 
-                // Tìm model hỗ trợ 'generateContent'
-                const validModel = data.models.find(m => 
-                    m.supportedGenerationMethods.includes("generateContent") && 
-                    (m.name.includes("flash") || m.name.includes("pro"))
-                );
+                // Danh sách ưu tiên (Từ miễn phí cao nhất -> thấp nhất)
+                // Ta ưu tiên 'flash' vì nó nhanh và quota free rất lớn
+                const priorityList = [
+                    "gemini-1.5-flash",         // Ưu tiên 1: Bản Flash chuẩn
+                    "gemini-1.5-flash-latest",  // Ưu tiên 2: Bản Flash mới nhất
+                    "gemini-1.5-pro",           // Ưu tiên 3: Bản Pro chuẩn
+                    "gemini-pro"                // Ưu tiên 4: Bản cũ ổn định
+                ];
 
-                if (validModel) {
-                    // Google trả về dạng "models/gemini-1.5-flash", ta cần cắt bỏ "models/"
-                    const modelName = validModel.name.replace("models/", "");
-                    localStorage.setItem('geminiModel', modelName);
-                    statusDiv.innerText = `✅ Đã kết nối: ${modelName}`;
-                    alert(`Thành công! Hệ thống đã chọn model: ${modelName}`);
+                let selectedName = null;
+
+                // 1. Chạy vòng lặp tìm theo thứ tự ưu tiên
+                for (let p of priorityList) {
+                    const found = data.models.find(m => m.name.endsWith(p));
+                    if (found) {
+                        selectedName = found.name.replace("models/", "");
+                        break; // Tìm thấy cái ngon nhất thì dừng luôn
+                    }
+                }
+
+                // 2. Nếu không tìm thấy trong list ưu tiên, mới lấy đại cái nào dùng được
+                // Nhưng tránh xa cái nào có chữ "exp" (experimental) vì hay bị lỗi quota 0
+                if (!selectedName) {
+                    const fallback = data.models.find(m => 
+                        m.supportedGenerationMethods.includes("generateContent") && 
+                        !m.name.includes("exp") // Tránh model thử nghiệm
+                    );
+                    if(fallback) selectedName = fallback.name.replace("models/", "");
+                }
+
+                // 3. Chốt model
+                if (selectedName) {
+                    localStorage.setItem('geminiModel', selectedName);
+                    statusDiv.innerText = `✅ Đã chọn: ${selectedName}`;
+                    alert(`Đã chuyển sang model ổn định: ${selectedName}`);
                 } else {
-                    // Fallback nếu không tìm thấy cái nào quen thuộc
+                    // Trường hợp cùng đường, quay về mặc định an toàn nhất
                     localStorage.setItem('geminiModel', 'gemini-1.5-flash');
-                    statusDiv.innerText = "⚠️ Dùng mặc định: gemini-1.5-flash";
+                    statusDiv.innerText = "⚠️ Fallback: gemini-1.5-flash";
                 }
 
             } catch (e) {
                 console.error(e);
-                statusDiv.innerText = "❌ Lỗi kết nối mạng";
+                statusDiv.innerText = "❌ Lỗi mạng khi dò tìm";
             }
         }
 

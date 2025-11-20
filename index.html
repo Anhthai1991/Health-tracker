@@ -3,35 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Tracker - Gout & Kidney Care</title>
+    <title>Trợ Lý Sức Khỏe Toàn Diện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: none; border-radius: 12px; }
-        .water-card { background: linear-gradient(135deg, #0dcaf0 0%, #0d6efd 100%); color: white; }
-        .warning-box { background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107; color: #856404;}
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header-gradient { background: linear-gradient(120deg, #2980b9, #8e44ad); color: white; padding: 30px 0; margin-bottom: 30px; border-radius: 0 0 20px 20px; }
+        .status-red { color: #e74c3c; font-weight: bold; }
+        .status-yellow { color: #f1c40f; font-weight: bold; }
+        .status-green { color: #27ae60; font-weight: bold; }
+        .search-box { border: 2px solid #3498db; border-radius: 25px; padding: 10px 20px; width: 100%; }
+        .tip-icon { font-size: 1.5rem; margin-right: 10px; color: #3498db; }
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-primary">Nguyễn Anh Thái - Health Dashboard</h2>
-            <span class="badge bg-secondary p-2">Last Update: <span id="lastUpdateDate">...</span></span>
+
+    <div class="header-gradient text-center">
+        <div class="container">
+            <h1>Hồ Sơ Sức Khỏe: Nguyễn Anh Thái</h1>
+            <p class="opacity-75">Kiểm soát Gout - Dạ dày - Men gan - Thận</p>
         </div>
-        
+    </div>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card p-4">
+                    <h4 class="text-primary mb-3"><i class="bi bi-search"></i> Tra cứu nhanh thực phẩm</h4>
+                    <input type="text" id="foodSearch" class="search-box" placeholder="Nhập tên thực phẩm (ví dụ: Bò, Gà, Bia, Trứng...)" onkeyup="searchFood()">
+                    <div id="searchResult" class="mt-3">
+                        <p class="text-muted small">Nhập tên món ăn để xem AI tư vấn có nên ăn hay không.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card p-4">
+                    <h4 class="text-success mb-3"><i class="bi bi-clock-history"></i> Lịch Trình Sinh Hoạt Khuyến Nghị</h4>
+                    <div class="row" id="lifestyleTips">
+                        </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row mb-4">
             <div class="col-md-8">
-                <div class="warning-box h-100">
-                    <h5><i class="bi bi-exclamation-triangle-fill"></i> Lưu ý Y Tế Hiện Tại:</h5>
-                    <p class="mb-0" id="healthAlert">Đang tải dữ liệu...</p>
+                <div class="card p-3">
+                    <h5><i class="bi bi-graph-up"></i> Diễn biến sức khỏe</h5>
+                    <canvas id="labChart"></canvas>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card water-card h-100 p-3 text-center">
-                    <h4>Mục Tiêu Uống Nước</h4>
-                    <h1 class="display-4 fw-bold" id="waterTarget">-- L</h1>
-                    <p class="small opacity-75" id="waterReason">Dựa trên chỉ số Acid Uric & Thận</p>
+                <div class="card p-3 h-100 text-center bg-white">
+                    <h5>Uống nước hôm nay</h5>
+                    <h1 class="display-1 fw-bold text-info" id="waterTarget">--</h1>
+                    <p class="text-muted" id="waterNote">...</p>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="alert('Đã ghi nhận 1 ly nước!')">+ 1 Ly (250ml)</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,133 +73,99 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card p-3">
-                    <h5 class="card-title">Xu hướng hồi phục (Gout, Men Gan, Thận)</h5>
-                    <canvas id="labChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card p-3">
-                    <h5>Theo Dõi Cân Nặng</h5>
-                    <canvas id="weightChart"></canvas>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card p-3 h-100">
-                    <h5>Nhật Ký & Đánh Giá AI</h5>
-                    <div class="overflow-auto" style="max-height: 300px;">
-                        <table class="table table-hover small">
-                            <tbody id="mealTable"></tbody>
-                        </table>
-                    </div>
+                    <h5>Nhật ký Ăn uống & Đánh giá</h5>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr><th>Ngày</th><th>Bữa ăn</th><th>Đánh giá</th></tr>
+                        </thead>
+                        <tbody id="mealTable"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        let foodDB = [];
+
         fetch('data.json')
             .then(response => response.json())
             .then(data => {
-                // Lấy ngày update cuối cùng
-                const lastCheckup = data.medical_checkups[data.medical_checkups.length - 1];
-                document.getElementById('lastUpdateDate').innerText = lastCheckup.date;
-                document.getElementById('healthAlert').innerText = lastCheckup.note;
-
-                calculateWater(lastCheckup);
+                foodDB = data.food_database;
+                renderLifestyle(data.lifestyle_tips);
                 renderLabChart(data.medical_checkups);
-                renderWeightChart(data.weight_log);
+                calculateWater(data.medical_checkups[data.medical_checkups.length - 1]);
                 renderMeals(data.meal_logs);
             });
 
-        // TÍNH NĂNG MỚI: Tính lượng nước dựa trên xét nghiệm
-        function calculateWater(latestResult) {
-            let waterAmount = 2.0; // Mức cơ bản
-            let reason = "Mức duy trì cơ bản.";
+        // 1. Hàm tìm kiếm thực phẩm
+        function searchFood() {
+            const input = document.getElementById('foodSearch').value.toLowerCase();
+            const resultDiv = document.getElementById('searchResult');
+            resultDiv.innerHTML = '';
 
-            // Logic: Nếu Gout cao hoặc Men gan cao -> Cần thải độc -> Tăng nước
-            if (latestResult.uric_acid > 420 || latestResult.alt_liver > 40) {
-                waterAmount = 3.0;
-                reason = "Tăng cường thải Acid Uric & Hạ men gan.";
-            } else if (latestResult.uric_acid > 360) {
-                waterAmount = 2.5;
-                reason = "Duy trì mức an toàn cho Gout.";
+            if (input.length < 2) return;
+
+            const results = foodDB.filter(item => item.name.toLowerCase().includes(input));
+
+            if (results.length > 0) {
+                results.forEach(item => {
+                    let icon = item.status === 'green' ? '🟢 Được ăn' : (item.status === 'yellow' ? '🟡 Hạn chế' : '🔴 Tránh xa');
+                    let colorClass = item.status === 'green' ? 'alert-success' : (item.status === 'yellow' ? 'alert-warning' : 'alert-danger');
+                    
+                    resultDiv.innerHTML += `
+                        <div class="alert ${colorClass} d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${icon}: ${item.name}</strong><br>
+                                <small>${item.reason}</small>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                resultDiv.innerHTML = '<p class="text-muted">Không tìm thấy trong cơ sở dữ liệu. Hãy thử từ khóa khác.</p>';
             }
-
-            document.getElementById('waterTarget').innerText = waterAmount + " Lít";
-            document.getElementById('waterReason').innerText = reason;
         }
 
+        // 2. Hàm hiển thị Lịch trình
+        function renderLifestyle(tips) {
+            const container = document.getElementById('lifestyleTips');
+            container.innerHTML = `
+                <div class="col-md-3 border-end"><i class="bi bi-brightness-alt-high tip-icon"></i><strong>Sáng:</strong><br>${tips.morning}</div>
+                <div class="col-md-3 border-end"><i class="bi bi-cup-hot tip-icon"></i><strong>Ăn uống:</strong><br>${tips.eating}</div>
+                <div class="col-md-3 border-end"><i class="bi bi-moon-stars tip-icon"></i><strong>Tối:</strong><br>${tips.evening}</div>
+                <div class="col-md-3"><i class="bi bi-bicycle tip-icon"></i><strong>Vận động:</strong><br>${tips.exercise}</div>
+            `;
+        }
+
+        // 3. Hàm tính nước
+        function calculateWater(latest) {
+            let amount = 2.0;
+            if(latest.uric_acid > 400 || latest.alt_liver > 40) amount = 3.0;
+            document.getElementById('waterTarget').innerText = amount + "L";
+            document.getElementById('waterNote').innerText = latest.uric_acid > 360 ? "Tăng nước để thải Acid Uric" : "Duy trì mức cơ bản";
+        }
+
+        // 4. Vẽ biểu đồ
         function renderLabChart(logs) {
             const ctx = document.getElementById('labChart').getContext('2d');
-            const labels = logs.map(l => l.date);
-            
-            // Xử lý Creatinine: Nếu null thì lấy giá trị cũ hoặc để null
-            const creatinineData = logs.map(l => l.creatinine);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Acid Uric (Gout) - Tốt < 420',
-                            data: logs.map(l => l.uric_acid),
-                            borderColor: '#dc3545', // Đỏ
-                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                            tension: 0.3,
-                            fill: true,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Men gan ALT - Tốt < 40',
-                            data: logs.map(l => l.alt_liver),
-                            borderColor: '#ffc107', // Vàng
-                            tension: 0.3,
-                            yAxisID: 'y1'
-                        },
-                        {
-                            label: 'Creatinine (Thận) - Tốt < 110',
-                            data: creatinineData,
-                            borderColor: '#0d6efd', // Xanh
-                            tension: 0.3,
-                            borderDash: [5, 5], // Nét đứt
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { type: 'linear', display: true, position: 'left', title: {display: true, text: 'Acid Uric (µmol/L)'} },
-                        y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display: true, text: 'Gan/Thận'} }
-                    }
-                }
-            });
-        }
-
-        function renderWeightChart(logs) {
-            const ctx = document.getElementById('weightChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: logs.map(l => l.date),
-                    datasets: [{
-                        label: 'Cân nặng (kg)',
-                        data: logs.map(l => l.value),
-                        borderColor: '#198754',
-                        tension: 0.1
-                    }]
-                }
+                    datasets: [
+                        { label: 'Gout (Uric Acid)', data: logs.map(l => l.uric_acid), borderColor: '#e74c3c', tension: 0.4 },
+                        { label: 'Men gan (ALT)', data: logs.map(l => l.alt_liver), borderColor: '#f1c40f', tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true }
             });
         }
 
         function renderMeals(logs) {
-            const tbody = document.getElementById('mealTable');
+            // Code render meal log (như cũ)
+             const tbody = document.getElementById('mealTable');
             logs.slice().reverse().forEach(log => {
-                tbody.innerHTML += `<tr><td><b>${log.date}</b><br>${log.content}</td><td class="text-muted"><em>${log.evaluation}</em></td></tr>`;
+                tbody.innerHTML += `<tr><td>${log.date}</td><td>${log.content}</td><td>${log.evaluation}</td></tr>`;
             });
         }
     </script>

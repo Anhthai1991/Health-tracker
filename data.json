@@ -8,7 +8,9 @@
   },
   "weight_log": [
     {"date": "2025-10-01", "value": 75},
-    {"date": "2025-10-08", "value": 74.5}
+    {"date": "2025-10-15", "value": 74.5}
+    {"date": "2025-11-01", "value": 74.3}
+    {"date": "2025-10-15", "value": 73.8}
   ],
   "medical_checkups": [
     {
@@ -28,10 +30,30 @@
       "note": "Hồi phục: Gout giảm 50% về mức an toàn. Men gan giảm nhưng vẫn cao."
     }
   ],
-  "diet_advice": {
-    "avoid": ["Rượu bia", "Nội tạng", "Thịt đỏ"],
-    "recommended": ["Nước khoáng kiềm", "Rau xanh", "Ức gà"],
-    "rules": "Ngủ trước 23h."
+  "food_database": [
+    {"name": "Thịt bò / Thịt đỏ", "status": "red", "reason": "Rất nhiều Purin (Gout), khó tiêu (Dạ dày)."},
+    {"name": "Hải sản vỏ cứng (Tôm, Cua)", "status": "red", "reason": "Nhiều Purin (Gout), dễ gây dị ứng."},
+    {"name": "Nội tạng động vật", "status": "red", "reason": "Kẻ thù số 1 của Gout và Men gan."},
+    {"name": "Rượu bia", "status": "red", "reason": "Hủy hoại Gan, chặn đào thải Acid Uric."},
+    {"name": "Đồ muối chua (Dưa, Cà)", "status": "red", "reason": "Nhiều muối (hại Thận), Axit cao (hại Dạ dày)."},
+    {"name": "Nước hầm xương", "status": "red", "reason": "Chứa cực nhiều Purin hòa tan (Gout)."},
+    
+    {"name": "Cá sông / Cá đồng", "status": "yellow", "reason": "Ăn được (bỏ da, bỏ mỡ). Tốt hơn thịt đỏ."},
+    {"name": "Đậu phụ / Đậu nành", "status": "yellow", "reason": "Ăn vừa phải. Purin thực vật ít hại hơn thịt."},
+    {"name": "Trứng (Lòng đỏ)", "status": "yellow", "reason": "Nhiều Cholesterol (Gan). Chỉ ăn 2-3 quả/tuần."},
+    {"name": "Cà phê", "status": "yellow", "reason": "Tốt cho Gan/Gout nhưng kích ứng Dạ dày. Chỉ uống loãng, sau ăn sáng."},
+
+    {"name": "Ức gà", "status": "green", "reason": "Đạm an toàn nhất. Nên luộc/hấp."},
+    {"name": "Lòng trắng trứng", "status": "green", "reason": "Nguồn đạm tinh khiết, không hại Gan/Gout."},
+    {"name": "Rau cải xanh / Súp lơ", "status": "green", "reason": "Nhiều kiềm, thải Axit Uric. Luộc kỹ để dễ tiêu."},
+    {"name": "Ổi / Đu đủ / Chuối", "status": "green", "reason": "Vitamin C không axit, chuối tráng niêm mạc dạ dày."},
+    {"name": "Khoai lang / Gạo lứt", "status": "green", "reason": "Tinh bột chậm, tốt cho đường huyết và tiêu hóa."}
+  ],
+  "lifestyle_tips": {
+    "morning": "Uống 1 cốc nước ấm sau khi ngủ dậy (tốt cho Thận/Ruột). Tập nhẹ nhàng.",
+    "eating": "Ăn chậm, nhai kỹ (giảm tải cho Dạ dày). Chia 5 bữa nhỏ thay vì 3 bữa lớn.",
+    "evening": "Kết thúc bữa ăn trước 19h30. Kê cao đầu giường 15-20cm khi ngủ (chống Trào ngược).",
+    "exercise": "Đi bộ 30p/ngày. Tránh vận động mạnh ngay sau ăn."
   },
   "meal_logs": []
 }

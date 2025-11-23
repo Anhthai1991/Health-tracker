@@ -7,7 +7,8 @@ PERSONALHEALTH/
 ├── assets/               <-- (Mới) Chứa ảnh, css, js (nên gom gọn vào đây)
 ├── data.json
 ├── health_analysis_2024.md
-├── workout_plan.md├── index.html
+├── workout_plan.md
+├── index.html
 └── ... (các file cũ)
 ```
 # Hướng dẫn sử dụng

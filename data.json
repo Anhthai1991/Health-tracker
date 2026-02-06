@@ -17,7 +17,11 @@
     {"date": "2025-11-23", "value": 73.5},
     {"date": "2025-11-30", "value": 73.2},
     {"date": "2025-12-04", "value": 73},
-    {"date": "2025-12-19", "value": 72.5}
+    {"date": "2025-12-19", "value": 72.5},
+    {"date": "2025-12-31", "value": 73},
+    {"date": "2026-01-15", "value": 73},
+    {"date": "2026-01-30", "value": 72.8},
+    {"date": "2026-02-06", "value": 73.5}
   ],
   "medical_checkups": [
     {
@@ -91,7 +95,25 @@
       "hgb": 16.0,
       "plt": 225,
       "note": "Hồi phục tốt sau điều trị. Các chỉ số giảm sâu."
-    }
+    },
+    {
+  "date": "2026-02-06",
+  "uric_acid": 543,
+  "alt_liver": 45.6,
+  "ast_liver": 26.9,
+  "ggt_liver": null,
+  "creatinine": 82.45,
+  "egfr": null,
+  "cholesterol": null,
+  "triglyceride": null,
+  "hdl": null,
+  "glucose": null,
+  "hgb": 16.6,
+  "rbc": 5.54,
+  "wbc": 4.83,
+  "plt": 214,
+  "note": "Acid uric tăng cao; ALT tăng nhẹ; AST bình thường; chức năng thận bình thường; hồng cầu và hemoglobin cao nhẹ, gợi ý máu hơi cô đặc"
+  }
   ],
   "food_database": [
     {
